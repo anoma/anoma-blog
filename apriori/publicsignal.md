@@ -1,10 +1,8 @@
 ---
 title: Public Signal
 category: applications
-publish_date: 2024-03-05
+publish_date: 2023-11-10
 image: media/publicsignal-01.png
-imageAlt: this is a test alt
-co_authors: yulia,tobias
 excerpt: In this article, we will introduce an application tentatively named Public Signal. The basic idea is to build an intent-centric version of Kickstarter which, in addition to being supply-side driven, can be demand-side driven.
 ---
 
