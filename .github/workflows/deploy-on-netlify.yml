@@ -1,0 +1,12 @@
+name: Trigger Blog Deploy on Netlify
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send POST request to trigger Netlify build
+        run: |
+          curl -X POST -d {} https://api.netlify.com/build_hooks/65f03474f173fc9f87925c28
