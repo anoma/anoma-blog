@@ -30,8 +30,6 @@ In the example above, only `distributed-systems`, `ecosystem`, and `security` ca
 
 ### `/authors.json`
 
-It includes a list of authors approved to be displayed on the website, with names corresponding to specific folders at the repository's root.
-
 This file allows you to update or add author names as they should appear on the blog. It contains the only authors who will be displayed in the website, with names corresponding to specific folders at the repository's root.
 
 ### `/avatars.json`
@@ -55,7 +53,7 @@ Examples
 
 - ❌ `/john/This is a post`: don't use spaces or capital letters
 - ❌ `/john/this-is-a-post`: `.md` extension is missing
-- ✅ `john/correct-file-structure.md`: all the characters in lowercase and file ending with a `.md extension`
+- ✅ `john/correct-file-structure.md`: all the characters in lowercase and file ending with a `.md` extension
 
 ### `/<author>/media`
 
@@ -165,7 +163,7 @@ a + b
 
 ### Using Mermaid Charts
 
-Mermaid diagrams can be added defining a `mermaid` definition to the code block. Example:
+Mermaid diagrams can be added using three backticks followed by `mermaid`. Example:
 
 ````
 ```mermaid
