@@ -419,7 +419,8 @@ def generate_V_funcs_from_graph(graph):
 ```
 
 As an example, take the following graph that I randomly generated;
-![](__GHOST_URL__/content/images/2024/01/RandomGraph.png)
+![](media/RandomGraph.png)
+
 We can prepare this example for simulation with
 
 ```python
@@ -467,7 +468,8 @@ def display_graph_colored(graph, node_colors):
 display_graph_colored(graph, (final_state[2*n_clauses:].round() % 3).astype(int).tolist())
 ```
 
-![](__GHOST_URL__/content/images/2024/01/RandomGraphColored.png)
+![](media/RandomGraphColored.png)
+
 This method works surprisingly well, but there aren't many guarantees. On many problems, simulation time can vary a lot based on starting conditions, and the simulation is very sensitive to the hyperparameters. It's also somewhat sensitive to numerical precision errors. Making the time step too large will often lead to getting stuck. If you've ever programmed neural networks by hand, messing with this method is quite similar. Often, nothing will work, and it's due to a minor calculation error somewhere that's hard to debug. But, when it does work, it feels a bit magical. It can often rapidly solve problems that seem far too difficult for such a simple method to work on.
 
 ### Addition and Subtraction
