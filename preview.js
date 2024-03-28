@@ -13,7 +13,7 @@ const filename = args["f"] ?? args["_"][0];
 const mediaDir = path.dirname(filename);
 const wsPort = 8118;
 const httpPort = args["p"] ?? 8110;
-const httpUrl = `http://localhost:${httpPort}`;
+const httpUrl = `https://anoma.net/preview`;
 
 const replaceSrcPath = (content) => {
   return content.replace(/src="/gi, `src="${httpUrl}/`);
@@ -23,8 +23,8 @@ console.log(chalk.bgRed(chalk.white(" Anoma Blog - Preview ")));
 if (!filename) {
   console.log(
     chalk.bgRed(
-      "File path was not provided. Please call preview.js script as `node preview.js <filename>`"
-    )
+      "File path was not provided. Please call preview.js script as `node preview.js <filename>`",
+    ),
   );
   process.exit(1);
 }
@@ -33,8 +33,8 @@ if (!fs.existsSync(filename)) {
   console.log(
     chalk.bgRed(
       "Invalid file provided. Please check if the following path is correct: " +
-        filename
-    )
+        filename,
+    ),
   );
   process.exit(1);
 }
@@ -47,12 +47,12 @@ const app = express();
 app.use(express.static(mediaDir));
 app.listen(httpPort, () => {
   console.log(
-    httpConsole(`HTTP Server listening to http://localhost:${httpPort}`)
+    httpConsole(`HTTP Server listening to http://localhost:${httpPort}`),
   );
 });
 
 console.log(
-  chalk.bgMagenta(chalk.black(` Starting Websocket Server on port ${wsPort} `))
+  chalk.bgMagenta(chalk.black(` Starting Websocket Server on port ${wsPort} `)),
 );
 const previewContentWs = new WebSocketServer({ port: wsPort });
 const sendUpdatedBlogInfo = async (clients) => {
@@ -68,8 +68,8 @@ const sendUpdatedBlogInfo = async (clients) => {
   clients.forEach((client) => {
     console.log(
       chalk.gray(
-        `[${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}]`
-      ) + wsConsole(` Updating Preview`)
+        `[${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}]`,
+      ) + wsConsole(` Updating Preview`),
     );
     client.send(msg);
   });
@@ -93,7 +93,7 @@ previewContentWs.on("listening", () => {
     () => {
       console.log(chalk.gray("Detected changes for " + filename));
       sendUpdatedBlogInfo(previewContentWs.clients);
-    }
+    },
   );
 
   const anomaUrl = "https://anoma.net/blog/preview";
