@@ -93,7 +93,7 @@ TLA+ looks quite peculiar among the ecosystem of formal proving systems. The mos
 
 The key is to take seriously the idea that propositions in TLA+ mentioning global variables are predicates/relations over states. In Isabelle, we can write out the state as;
 
-```TLA+
+```Isabelle
 record State =
   msgs :: "PreMessage list"
   known_msgs_acc :: "Acceptor ⇒ PreMessage list"
@@ -122,7 +122,7 @@ TypeOK ==
 
 But, nothing super interesting is happening. One may note a split between `Learner` and `Acceptor` in the Isabelle formulation, but this isn't important for this post. From here, we can define analogs of `Init` and `Next`. Since `Init` has only one true parameter, we can turn it into a function that returns a state.
 
-```TLA+
+```Isabelle
 fun Init :: "(Ballot ⇒ Value) ⇒ State" where
   "Init bval = ⦇ 
       msgs = [], 
@@ -139,7 +139,7 @@ fun Init :: "(Ballot ⇒ Value) ⇒ State" where
 
 We could have also defined it as a predicate returning a bool, but it's generally better to take advantage of functional features when possible for ease of use. For `Next`, it really should be a relation;
 
-```TLA+
+```Isabelle
 fun Next :: "State ⇒ State ⇒ bool" where
   "Next st st2 = (
        ProposerSendAction st st2
@@ -151,7 +151,7 @@ fun Next :: "State ⇒ State ⇒ bool" where
 
 How do we express `Init /\ [][Next]_vars`? As I described it before, it should be a predicate about the history. What is a history? A simple answer is an infinite stream of states; that is, a function from natural numbers into states. Using that description, we'd get
 
-```TLA+
+```Isabelle
 fun Spec :: "(nat ⇒ State) ⇒ bool" where
   "Spec his = (
     (∃b :: Ballot ⇒ Value. his 0 = Init b) ∧
@@ -168,7 +168,7 @@ Taking this seriously, we can translate other modal concepts into this same fram
 
 Here, `b` is our history. We can easily formulate this as
 
-```TLA+
+```Isabelle
 fun Enabled :: "(State ⇒ State ⇒ bool) ⇒ State ⇒ bool" where
   "Enabled r st = (∃st2. r st st2)"
 
@@ -186,7 +186,7 @@ What I've written here is certainly not the only approach. Martin Kleppmann post
 
 The main difference, as I see it, between what I present here and what Kleppmann does is how the history is formulated. Instead of constraining a stream, Kleppmann defines an inductive predicate over lists of states, where each list is a prefix of the whole history. Each state is still implicitly indexed by a natural number, being the place in the list where that state is. It's not clear to me what advantages/disadvantages this approach has over the one I presented here, but there's definitely room for exploration at this point.
 
-## Insights from Coaglebra
+## Insights from Coalgebra
 
 In a [previous post](https://anoma.net/blog/abstract-intent-machines), I brought up the concept of a coalgebra as useful for modeling machines of various kinds in an abstract way. I also mentioned they have a close connection to modal logics through the observation that Kripke semantics is a coalgebra.
 
