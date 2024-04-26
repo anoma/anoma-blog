@@ -92,8 +92,6 @@ One interesting example of a centralized server model that has managed to side-s
   <figcaption>Source: imageflip</figcaption>
 </figure>
 
-<a href="https://imgflip.com/i/8ka6kw"><img src="upload://o6Ct3mhvKwB8yf6IoIjLYXAvyK.jpeg" title="made at imgflip.com"></a><div><a href="https://imgflip.com/memegenerator"></a></div>
-
 Signal's co-founder Moxie Marlinspike (previously Open Whisper Systems) gave a compelling talk at the 36th [Chaos Communication Congress](https://en.wikipedia.org/wiki/Chaos_Communication_Congress) in Leipzig, Germany. In the talk, he made a few key points.
 
 - Software evolves - evolution is incompatible with the static nature of decentralized systems. Swift and timely upgrades are not easy.
@@ -369,6 +367,7 @@ channelResource : Resource := {
   name : String,
   participants : List Address,
   permissions : Permissions,
+}
 ```
 
 a user profile resource with fields consisting of a username, public key and avatar.
@@ -378,6 +377,7 @@ userProfileResource : Resource := {
   username : String,
   publicKey : PublicKey,
   avatar : String,
+}
 ```
 
 a `permissionsResource` which defines the actions (booleans) the user is allowed to perform, such as sending messages, creating channels, or managing their profile,
