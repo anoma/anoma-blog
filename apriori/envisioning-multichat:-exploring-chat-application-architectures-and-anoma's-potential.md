@@ -34,9 +34,9 @@ It should be noted that this art is inspired by significant contributions to the
 
 ## Acknowledgements
 
-This art is Inspired by conversations with Christopher Goes, D, Naqib Zarin, TG, Yulia K, and Tobias Heindal. 
+This art is Inspired by conversations with Christopher Goes, D, Naqib Zarin, TG, Yulia Khalniyazova, and Tobias Heindel. 
 
-*Thank you to Christopher Goes and [@0x_Emperor](https://x.com/0x_emperor) for preliminary review and feedback. Note that, we did not make all of the requested changes. Review ≠ endorsement.*
+*Thank you to [Christopher Goes](https://x.com/cwgoes) and [@0x_Emperor](https://x.com/0x_emperor) for preliminary review and feedback. Note that, we did not make all of the requested changes. Review ≠ endorsement.*
 
 Indeed, this art [stands on the shoulders of giants](https://en.wikipedia.org/wiki/Standing_on_the_shoulders_of_giants), and our contributions here pale in comparison to the referenced literature. **All errors, mistakes, omissions are the author's own.**
 
