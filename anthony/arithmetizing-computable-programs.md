@@ -1,5 +1,5 @@
 ---
-title: Arithmetizing Computable Programs
+title: Arithmetizing Computable Programs Simply
 publish_date: 2024-05-??
 category: compilers
 image: media/differential-equations-01.png
@@ -12,7 +12,7 @@ My task for this post is to describe the simplest way to arithmetize universal c
 
 This post is mostly written because I think it's interesting, but, speculatively, this may have implications for future work on zero-knowledge virtual machines. There's a reasonable sense in which a ZK-vm is a cryptographically verifiable, intentionally complete function. Starting with a very simple example of a non-cryptographic functions may lead to valuable insights.
 
-## Traditional Answers
+## A Traditional Answer
 
 This is, of course, an old problem at this point, and one whose usual answer comes in the form of a universal Turing machine. However, I don't find this very satisfying. Part of that is due to the fundamental inellegance of Turing machines. Despite how often they're mentioned, they're rarely used. Most places where they seem to be used they are merely mentioned. Whenever Turing machines are brought up in white papers, they are almost never acompanied by details of which machine is being used, nor are actual programs mentioned. I think I've seen maybe three or four papers actually give exampkles of Turing machine programs, compered to the over a hundred I've seen mention Turing machines without giving any further details.
 
@@ -51,21 +51,156 @@ This works by encoding programs that itterate a function a number of times equal
 
 By itterating $1 +$, we can build up an encoding for any natural number. Further, it's semidecidable if a program encodes a natural number, since we can just apply the variables $z$ and $f$ and, if it normalizes to an itteration of $f$s, we can just count the $f$s to get back the encoded number.
 
+This doesn't complete our original goal, since we've yet to define a function that can decode computable functions from natural numbers. Do do this, we merely need to define an injection from SK expressions onto natural numbers. In fact, it's quite easy to define a bijection. Firstly, note that SK expressions are the type in the initial algebra of the functor
+	- $F(X) := 2 + X \times X$
+Each layer is either one of two elements (S or K), or it is a binary branch. The inductive type, $\mu X. F(X) \equiv F(\mu X. F(X))$ is isomorphic to SK expressions. If we could define an isomorphism $\mathbb{N} \simeq F(\mathbb{N})$, then we could use this in one direction as an algebra to collapse an expression into a natural number. We could also use it in the other direction as a coalgebra to build an expression, given a natural number.
+
+Showing that $\mathbb{N} \simeq 2 + \mathbb{N}$ is easy, as we can simply map the two elements to $0$ and $1$, and add $2$ to an actual number. $\mathbb{N} \simeq \mathbb{N} \times \mathbb{N}$ is more complicated, but it's a well-studied problem, with a typical example of such a map being cantor pairing. See also
+
+	- [Efficient Pairing Functions - and Why You Should Care](https://www.researchgate.net/profile/Arnold-Rosenberg/publication/220181086_Efficient_Pairing_Functions_-_and_Why_You_Should_Care/links/54450b110cf2534c766086ff/Efficient-Pairing-Functions-and-Why-You-Should-Care.pdf) by Arnold L. Rosenberg
+
+For this post, I'll use this pairing function, which is my personal favorite. 
+
+```haskell
+len :: Integer -> Integer
+len x = 
+  if x == 0 then 0 
+  else floor (logBase 2 (fromIntegral x)) + 1
+
+encodePair :: (Integer, Integer) -> Integer
+encodePair (x, y) = 
+    let g = len (x + 1) - 1
+        s = g + len (y + 1) - 1
+    in (g + s - 2) * 2^s + y * 2^g + x + 2
+
+clw :: Integer -> Integer
+clw n =
+    let r = max (len n - 1) 0
+        w = r - len r
+        w' = if len w + w /= r then w + 1 else w
+        w'' = if w' * 2^(w' + 1) < n then w' + 1 else w'
+    in w''
+
+decodePair :: Integer -> (Integer, Integer)
+decodePair x =
+  let s = clw x
+      p = x - (s - 1) * 2 ^ s - 1
+      g = p `div` (2 ^ s)
+   in ( 2 ^ g + mod p (2 ^ g) - 1
+      , ( (2 ^ s + mod p (2 ^ s)) `div` (2 ^ g) ) - 1
+      )
+```
+
+If you want an explanation for this fuction, you can read my blog post where I describe how it was calculated [here](http://anthonylorenhart.com/2021-11-29-An-Optimal-and-Feasible-Pairing-Function/).
+
+With this, or any other pairing function, in hand, we can easily define a function that encodes a single layer of an expression.
+
+```
+data SKF r = S | K | A r r
+  deriving (Functor)
+
+encodeSKF :: SKF Integer -> Integer
+encodeSKF S = 0
+encodeSKF K = 1
+encodeSKF (A i1 i2) = encodePair (i1, i2) + 2
+
+decodeSKF :: Integer -> SKF Integer
+decodeSKF n | n == 0 = S
+            | n == 1 = K
+            | otherwise = 
+              let (i1, i2) = decodePair (n - 2)
+              in A i1 i2
+```
+
+We can finish defining full encodings for expressions by (un)folding using these.
+
+```
+data Fix f = Fix {unFix :: f (Fix f)}
+
+newtype SK = SK (Fix SKF)
+
+encodeSK :: SK -> Integer
+encodeSK (SK x) = go x
+  where
+    go = encodeSKF . fmap go . unFix
+
+decodeSK :: Integer -> SK
+decodeSK n = SK (go n)
+  where
+    go = Fix . fmap go . decodeSKF
+```
+
+This gives us enough to complete our original goal. We can define the universal function to take two natural numbers. The first is decoded into an SK expression using the above mapping; the second is converted into a church-encoded numeral. The application of the SK expression to the encoded number evaluated into normal form, and then the previously described procedure is used to decode into a number, if possible. If the output is not a number, then we consider this the same as if the program never normalized.
+
+This works, but it seems way too complicated. Can this be simplified?
+
+## Improving Attempts
+
+How can we simplify the previous construction? One obvious place is to look at the encoding. Instead of using church encodings, there are many others we could use. But, with our isomorphism, we can encode numbers as expressions and vice versa. Does that work?
+
+We'd use the previous isomorphism to decode a natural number in both arguments to an SK expression, evaluate it to normal form, then decode the output using the isomorphism. This, however, doesn't define a universal function. The most obvious way to see this is to observe that the ouputs are normalized. This means any compitable function capable of outputting a number deconding to a non-normalizes SK expression cannot be expressed. This specific issue can be fixed by devizing an encoding of normalized expressions and using that encoding for decoding the output. That's not hard to do, but there's a bigger issue thats not solved so easily. Consider the expressions $(S @ K) @ S$ and $(S @ K) @ K$. These are both extensionally equivalent; that is, for all `x`
+	- $((S @ K) @ S) @ x = ((S @ K) @ K) @ x$
+In particular, both are the identity function. One of the more interesting properties of the SK combinator system is that it has no way fo distinguishing between extentionally-equivalent programs. That means, using our new there's no way to represent a function that distinguishes between then encoding of those two expresions, even though computable functions with that capability exist.
+
+There's also a bigger, conceptual issue. If the second argument to our universal function is decoded to an arbitrary expression, then such expressions may not be normalized. Such expressions must be equal to other expressions with different encodings. Confluence of the reduction rules of the calculus would prevent us from representing a function that distinguishes between an un-normalized expression, its normal form, and any other expression with the same normal form.
+
+Of course, such a function will still be *Turing complete*, because we can encode these computations using some scheme; by my aim isn't Turing complateness, it's intensional completeness. I want to actually have code points for each computable function, not some argument that any computable function can be simulated.
+
+Is there a way to solve, or bypass, all these problems? The answer is yes! In the paper
+
+	- [A combinatory account of internal structure](https://d1wqtxts1xzle7.cloudfront.net/30848902/factorisation-libre.pdf?1392045305=&response-content-disposition=inline%3B+filename%3DA_Combinatory_Account_of_Internal_Struct.pdf&Expires=1715127451&Signature=XbZjV8gZQguUCo9XilVjEXyomZhwH1yGbmPGQCIBlv8Ft1SoTxZDrGM6BxJrOGGBydv8CmAXJxXmPFVel~VJ3-cEs1XxrZMIFw619M-aNDGlt~srBGoVnEYh2E93-p40AeLAd~rEQq~emlKMBTzBl77C597jpl3XIFYxZmazRk244eBgiOkMtbjbVzTtdb-elmLBGVpFP3nvkcRlrEvJOhGRwo2HbMigyRLllErLs61ohwLFzSi9eppUNuejY-EBeYLUaY6Mx0zXfAq-pRRSZB9-6xdKL-OSJa0AxTnAKaatK7DQCQnCYqqinhHS-5qhrAXDSZYDmWGoyOTyKmIjfQ__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA) by Barry Jay and Thomas Given-Wilson
+
+a varient of the SK calculus is given where $K$ is replaced with a new combinator, $F$, with the following rules
+
+	- $((F @ S) @ x) @ y = x$
+	- $((F @ F) @ M) @ N = y$
+	- $((F @ (a @ b)) @ x) @ y = (y @ a) @ b$
+
+Notice that $F$ has multiple rules, and it effectively pattern-matches on expressions. For the sake of confluence, in order for that last rule to make sense, $a @ b$ must be in, at least, head-normal form.
+
+This new calculus is able to distinguish between arbitrary normal forms, thus solving the extensionality issue. We can also solve the un-normalized expression issue by simply not considering them; decode the second argument into a normal form rather than an arbitrary expression. Defining an isomorphism into normalised SF (or SK) expressions is not hard, but it is more ellaborate than the previous constuction, so I'll leave it as an exersize to the interested reader.
+
+The SF calculus later evolved into an even simpler system, and it's that final system which I'll use to create our final, universal function.
+
+## The Simplest Universal Function (So far)
 
 
-T f x y = f y x
+
+	- [Reflective Programs in Tree Calculus](https://raw.githubusercontent.com/barry-jay-personal/tree-calculus/master/tree_book.pdf) by Barry Jay
+	
 
 
+```
+pi1 = fst . decodePair
+pi2 = snd . decodePair
+-- gets x from encoded inr (inl x) OR inr (inr x) : 1 + (Int + Int)
+unIn x = (x - 1) `div` 2
 
+-- Universal Intensionally Complete Function
+(@) :: Integer -> Integer -> Integer
+x @ z
+  | x == 0 = 1 + 2 * z
+  | even (x - 1) = 2 + 2 * encodePair (unIn x, z)
+  | pi1 (unIn x) == 0 = pi2 (unIn x)
+  | even (pi1 (unIn x) - 1) =
+      let (a, b) = decodePair (unIn x)
+      in (b @ z) @ (unIn a @ z)
+  | otherwise =
+      let (a, b) = decodePair (unIn (pi1 (unIn x)))
+      in (z @ a) @ b
+```
 
-Further, typical outputs of SK expressions are normalized SK expressions, which are only sometimes interpretable as numbers, according to our encoding. 
+We can understand better what this function is doing by rephrasing it like so
 
+```
+0 @ z == 1 + 2 z
+(1 + 2*x) @ z == 2 + 2*{x, z}
+(2 + 2*{0, y}) @ z == y
+(2 + 2*{1 + 2*x, y}) @ z == (y @ z) @ (x @ z)
+(2 + 2*{2 + 2*{w, x}, y}) @ z == (z @ w) @ x
+```
 
-
-
-
-
-
+where `{x, y}` is the same as `encodePair (x, y)`. If we were using a functional-logic programming languge, like Curry, we may be able to define our function somewhat similar to this.
 
 
 
