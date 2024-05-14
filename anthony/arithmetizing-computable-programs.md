@@ -39,20 +39,21 @@ SK combinator expressions are not numbers, so we must choose an encoding. A typi
 This works by encoding programs that itterate a function a number of times equal to the number being encoded. If $e_n$ is the encoding of the number $n$, then $(e_n @ z) @ f = f(f(f( ... f(f(z)) ... )))$, where $f$ is repreated $n$ times. To demonstate, we may observe that
 
  - $(0 @ z) @ f = (K @ z) @ f = z$
- - $((1 + 0) @ z) @ f = 
-		(((S @ (K @ (S @ ((S @ K) @ K)))) @ 0) @ z) @ f = 
-		(((K @ (S @ ((S @ K) @ K))) @ z) @ (0 @ z)) @ f = 
-		((S @ ((S @ K) @ K)) @ (0 @ z)) @ f = 
-		(((S @ K) @ K) @ f) @ ((0 @ z) @ f) = 
-		(((S @ K) @ K) @ f) @ z =
-		(((S @ K) @ K) @ f) @ z =
-		((K @ f) @ (K @ f)) @ z=
+ - $((1 + 0) @ z) @ f = \
+		(((S @ (K @ (S @ ((S @ K) @ K)))) @ 0) @ z) @ f = \
+		(((K @ (S @ ((S @ K) @ K))) @ z) @ (0 @ z)) @ f = \
+		((S @ ((S @ K) @ K)) @ (0 @ z)) @ f = \
+		(((S @ K) @ K) @ f) @ ((0 @ z) @ f) = \
+		(((S @ K) @ K) @ f) @ z = \
+		(((S @ K) @ K) @ f) @ z = \
+		((K @ f) @ (K @ f)) @ z = \
 		f @ z$
 
-By itterating $1 +$, we can build up an encoding for any natural number. Further, it's semidecidable if a program encodes a natural number, since we can just apply the variables $z$ and $f$ and, if it normalizes to an itteration of $f$s, we can just count the $f$s to get back the encoded number.
+By itterating $1 +$, we can build up an encoding for any natural number. Further, it's semidecidable if a program encodes a natural number, since we can just apply the variables $z$ and $f$ and, if it normalizes to an itteration of $f$, we can just count the $f$ occurrences to get back the encoded number.
 
-This doesn't complete our original goal, since we've yet to define a function that can decode computable functions from natural numbers. Do do this, we merely need to define an injection from SK expressions onto natural numbers. In fact, it's quite easy to define a bijection. Firstly, note that SK expressions are the type in the initial algebra of the functor
+This doesn't complete our original goal, since we've yet to define a function that can decode computable functions from natural numbers. To do this, we merely need to define an injection from SK expressions onto natural numbers. In fact, it's quite easy to define a bijection. Firstly, note that SK expressions are the type in the initial algebra of the functor
  - $F(X) := 2 + X \times X$
+ 
 Each layer is either one of two elements (S or K), or it is a binary branch. The inductive type, $\mu X. F(X) \equiv F(\mu X. F(X))$ is isomorphic to SK expressions. If we could define an isomorphism $\mathbb{N} \simeq F(\mathbb{N})$, then we could use this in one direction as an algebra to collapse an expression into a natural number. We could also use it in the other direction as a coalgebra to build an expression, given a natural number.
 
 Showing that $\mathbb{N} \simeq 2 + \mathbb{N}$ is easy, as we can simply map the two elements to $0$ and $1$, and add $2$ to an actual number. $\mathbb{N} \simeq \mathbb{N} \times \mathbb{N}$ is more complicated, but it's a well-studied problem, with a typical example of such a map being cantor pairing. See also
@@ -139,6 +140,7 @@ How can we simplify the previous construction? One obvious place is to look at t
 
 We'd use the previous isomorphism to decode a natural number in both arguments to an SK expression, evaluate it to normal form, then decode the output using the isomorphism. This, however, doesn't define a universal function. The most obvious way to see this is to observe that the ouputs are normalized. This means any compitable function capable of outputting a number deconding to a non-normalizes SK expression cannot be expressed. This specific issue can be fixed by devizing an encoding of normalized expressions and using that encoding for decoding the output. That's not hard to do, but there's a bigger issue thats not solved so easily. Consider the expressions $(S @ K) @ S$ and $(S @ K) @ K$. These are both extensionally equivalent; that is,
  - $\forall x. ((S @ K) @ S) @ x = ((S @ K) @ K) @ x$
+ 
 In particular, both are the identity function. One of the more interesting properties of the SK combinator system is that it has no way of distinguishing between extentionally-equivalent programs. That means, using our new encoding there's no way to represent a function that distinguishes between then encoding of those two expresions, even though computable functions with that capability exist.
 
 There's also a bigger, conceptual issue. If the second argument to our universal function is decoded to an arbitrary expression, then such expressions may not be normalized. Such expressions must be equal to other expressions with different encodings. Confluence of the reduction rules of the calculus would prevent us from representing a function that distinguishes between an un-normalized expression, its normal form, and any other expression with the same normal form.
@@ -168,7 +170,8 @@ A simpler system was presented in the book.
  - [Reflective Programs in Tree Calculus](https://raw.githubusercontent.com/barry-jay-personal/tree-calculus/master/tree_book.pdf) by Barry Jay
  
 There's lots of interesting stuff in that book, but, for our purposes, we will only need the equations of the system. The "Tree Calculus" is generated by the grammar
- - $T ::= * | (T @ T)
+ - $T ::= *\ |\ T @ T$
+ 
 satisfying the equations
 
  - $((* @ *) @ y) @ z = y$
@@ -177,9 +180,9 @@ satisfying the equations
 
 The first two equations mirror the S and K combinators, while the last mirrors the F combinator. Like the SF-calculus, the system is intentionally complete over normalized expressions. The normal forms of this logic match the patterns
 
- - $N ::= * | (* @ N) | (* @ N) @ N$
+ - $N ::= *\ |\ * @ N\ |\ (* @ N) @ N$
 
-The pattern $((* @ N) @ N) @ N$ is bount to match one of the left hand sides of the above equations, as that first $N$ must be in one of the three given forms if it is a normal form.
+The pattern $((* @ N) @ N) @ N$ is bound to match one of the left hand sides of the above equations, as that first $N$ must be in one of the three given forms if it is a normal form.
 
 These normal forms are clearly isomorphic to non-full binary trees;
 
@@ -197,7 +200,7 @@ app (Fan (Branch x) y) z = app (app y z) (app x y)
 app (Fan (Fan w x) y) z = app (app z w) x
 ```
 
-If we take isomorphisms seriously, then we're done. `BTree` is just a notation for the natural numbers, no different than chosing a base representation. This approach has been taken in other work, to interesting results, such as
+If we take isomorphisms seriously, then we're done. `BTree` is just a notation for the natural numbers, no different than choosing a base representation. This approach has been taken in other work, to interesting results, such as
 
  - [A generic numbering system based on catalan families of combinatorial objects](https://arxiv.org/pdf/1406.1796) by Paul Tarau
 
@@ -218,7 +221,7 @@ decodeBTreeF n
   | even (n - 1) = Branch ((n - 1) `div` 2)
   | otherwise =
       let (a, b) = decodePair ((n - 1) `div` 2)
-       in Fan a b
+      in Fan a b
 
 newtype BTree = BTree (Fix BTreeF)
 
@@ -240,7 +243,7 @@ We can then define out function over ordinary nubmers by factoring through this 
 x @ y = encodeBTree (app (decodeBTree x) (decodeBTree y))
 ```
 
-We can also go a bit further. We can completely factor out `BTree` to get a purely arithmetical function.
+We can also go a bit further. We can completely factor out `BTree` to get a purely arithmetical function, essentially fusing `app`, `encodeBTree` and `decodeBTree` into a single function.
 
 ```haskell
 pi1 = fst . decodePair
@@ -278,8 +281,23 @@ And that's the final version of the function I will present in this post.
 
 ## Speculation on Improvements
 
+We can do some stamp collecting to get a library of useful programs. I reccommend reading Barry Jay's book, if you're interested. This sort of setup should work for any kind of countable datastructure. One of the inefficiencies of using combinators is that there's no trivially efficient ways to connect opposite ends of a program. If we had binders, a la the lambda calculus, this would be improved. One can extend the SF calculus with lambda exressions and it will maintain its ability to distinguish expressions up to beta equivalence (eta reduction can't be used if we want to maintain confluence). But encoding normal forms for that starts getting pretty complicated. I wonder if there might be something better. Maybe using drags?
 
+ - [Drag Rewriting](https://inria.hal.science/hal-04029105/file/Drag_Rewriting.pdf)
 
+Going more mathematical, we might use something like hereditarily finite sets, or relational structures (e.g. edge-colored hypergraphs, equivalen to relational databases). One might also speculate on simpler systems, one that's defined over bitstrings or unitary numbers or full binary trees. There really isn't a robust theory for how universal systems can be made. Intuitively, it must be able to delete, to copy, to permute, to compose, and to pattern-match. The tree calcus (and the SK calculus) is clever in how it's able to consolidate several of those into a single equation. I've had no success thus far in trying to create my own systems using different data structures. Graphical ones, especcially, are hard to reason about.
+
+For ZK applications, the obvious structure to think about would be lists (or some other container of) finite field elements. I suspect some design using bitstrings would work similarly.
+
+## Conclusion
+
+I've described what I believe to be the simplest existing method to arithmetize computable functions. An obvious next step to make this useful is to actually describe some arithmetic circuit representation. This is where I'm not convinced it will turn out all that useful. Efficiency is often the name of the game when it comes to ZK-VMs. The idea of using SK combinators as a ZK-VM has been arond for a while, but what's not clear is how to do so efficiently. My bet would be translating the calculus to string diagrams then designing a circuit to check diagram traces, a la.
+
+ - [Arithmetization of Functional Program Execution via Interaction Nets in Halo 2](https://eprint.iacr.org/2022/1211) by Me
+
+This is similar. Although, decomposing things into traces like this loses the appeal of having everything be arithmetical from the start. To that end, it may be more natural to arithmetize using an encoding of big ints, but that's not too efficient either. 
+
+While I'm pessimistic on the prospect, maybe a reader will be inspired. In the mean time, it's pretty neat anyway.
 
 
 
