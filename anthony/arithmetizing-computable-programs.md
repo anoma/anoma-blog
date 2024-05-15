@@ -310,7 +310,11 @@ Perhaps this idea can be combined with one of these to get such an adequate calc
 * [First-order unification using variable-free relational algebra](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8189530) by EJG Arias, J Lipton, J Mariño
 * A Family of Unification-Oblivious Program Transformations and Their Applications by Paul Tarau
 
-Relational programming can, through its nondeterminism, represent some things, such as constraints, more succinctly than functional programs. Such a calculus would arithmetize all computable relations, not just functions.
+Relational programming can, through its nondeterminism, represent some things, such as constraints, more succinctly than functional programs. Such a calculus would arithmetize all computable relations, not just functions. It's known that, for example, diophantine equations already do this
+
+* [Hilbert's Tenth Problem] by Yuri Matiyasevich
+
+but not in a way that allows easy expression of higher-order concepts like recursion or combinators. It's complete by coincidence rather than design.
 
 ## Conclusion
 
