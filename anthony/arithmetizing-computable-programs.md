@@ -41,15 +41,15 @@ SK combinator expressions are not numbers, so we must choose an encoding. A typi
 This works by encoding programs that iterate a function a number of times equal to the number being encoded. If $e_n$ is the encoding of the number $n$, then $(e_n @ z) @ f = f(f(f( ... f(f(z)) ... )))$, where $f$ is repeated $n$ times. To demonstrate, we may observe that
 
 * $(0 @ z) @ f = (K @ z) @ f = z$
-* $((1 + 0) @ z) @ f =$ <br>
-        $(((S @ (K @ (S @ ((S @ K) @ K)))) @ 0) @ z) @ f =$ <br>
-        $(((K @ (S @ ((S @ K) @ K))) @ z) @ (0 @ z)) @ f =$ <br>
-        $((S @ ((S @ K) @ K)) @ (0 @ z)) @ f =$ <br>
-        $(((S @ K) @ K) @ f) @ ((0 @ z) @ f) =$ <br>
-        $(((S @ K) @ K) @ f) @ z =$ <br>
-        $(((S @ K) @ K) @ f) @ z =$ <br>
-        $((K @ f) @ (K @ f)) @ z =$ <br>
-        $f @ z$
+* $((1 + 0) @ z) @ f$ <br>
+        $= (((S @ (K @ (S @ ((S @ K) @ K)))) @ 0) @ z) @ f$ <br>
+        $= (((K @ (S @ ((S @ K) @ K))) @ z) @ (0 @ z)) @ f$ <br>
+        $= ((S @ ((S @ K) @ K)) @ (0 @ z)) @ f$ <br>
+        $= (((S @ K) @ K) @ f) @ ((0 @ z) @ f)$ <br>
+        $= (((S @ K) @ K) @ f) @ z$ <br>
+        $= (((S @ K) @ K) @ f) @ z$ <br>
+        $= ((K @ f) @ (K @ f)) @ z$ <br>
+        $= f @ z$
 
 By iterating $1 +$, we can build up an encoding for any natural number. Further, it's semi-decidable if a program encodes a natural number, since we can just apply the variables $z$ and $f$ and, if it normalizes to an iteration of $f$, we can just count the $f$ occurrences to get back the encoded number.
 
@@ -186,7 +186,7 @@ satisfying the equations
 
 The first two equations mirror the S and K combinators, while the last mirrors the F combinator. Like the SF-calculus, the system is intentionally complete over normalized expressions. The normal forms of this logic match the patterns
 
-* $N ::= *\quad |\quad * @ N\quad |\quad (* @ N) @ N$
+* $N ::= *\ |\ (* @ N)\ |\ (* @ N) @ N$
 
 The pattern $((* @ N) @ N) @ N$ is bound to match one of the left hand sides of the above equations, as that first $N$ must be in one of the three given forms if it is a normal form.
 
