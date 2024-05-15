@@ -14,7 +14,7 @@ This post is mostly written because I think it's interesting, but, speculatively
 
 ## A Traditional Answer
 
-This is, of course, an old problem at this point, and one whose usual answer comes in the form of a universal Turing machine. However, I don't find this very satisfying. Part of that is due to the fundamental inelegance of Turing machines. Despite how often they're mentioned, they're rarely used. Most places where they seem to be used they are merely mentioned. Whenever Turing machines are brought up in white papers, they are almost never accompanied by details of which machine is being used, nor are actual programs given. I think I've seen maybe three or four papers actually give examples of Turing machine programs, compared to the over a hundred I've seen mention Turing machines without giving any further details.
+This is, of course, an old problem at this point, and one whose usual answer comes in the form of a universal Turing machine. However, I don't find this very satisfying. Part of that is due to the fundamental inelegance of Turing machines. Despite how often they're mentioned, they're rarely used. Whenever Turing machines are brought up in white papers, they are almost never accompanied by details of which machine is being used, nor are actual programs given. I think I've seen maybe three or four papers actually give examples of Turing machine programs, compared to the over a hundred I've seen mention Turing machines without giving any further details.
 
 Contrast this with the lambda calculus or the SK combinator calculus; models of computation which are much easier to use. It's rare that mentions of these aren't accompanied by actual programs.
 
