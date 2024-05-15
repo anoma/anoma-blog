@@ -53,7 +53,7 @@ This works by encoding programs that iterate a function a number of times equal 
 
 By iterating $1 +$, we can build up an encoding for any natural number. Further, it's semi-decidable if a program encodes a natural number, since we can just apply the variables $z$ and $f$ and, if it normalizes to an iteration of $f$, we can just count the $f$ occurrences to get back the encoded number.
 
-This doesn't complete our original goal, since we've yet to define a function that can decode computable functions from natural numbers. To do this, we merely need to define an injection from SK expressions onto natural numbers. In fact, it's quite easy to define a bijection. Firstly, note that SK expressions are the type in the initial algebra of the functor
+This doesn't complete our original goal, since we've yet to define a function that can decode computable functions from natural numbers. To do this, we merely need to define an injection from SK expressions onto natural numbers. In fact, it's quite easy to define a bijection. Firstly, note that SK expressions are isomorphic to the initial algebra of the functor
 
 * $F(X) := 2 + X \times X$
 
