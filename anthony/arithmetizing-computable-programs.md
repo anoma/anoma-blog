@@ -133,7 +133,7 @@ decodeSK n = SK (go n)
     go = Fix . fmap go . decodeSKF
 ```
 
-This gives us enough to complete our original goal. We can define the universal function to take two natural numbers. The first is decoded into an SK expression using the above mapping; the second is converted into a church-encoded numeral. The application of the SK expression to the encoded number is evaluated into normal form, and then the previously described procedure is used to decode into a number, if possible. If the output is not a number, then we consider this the same as if the program never normalized.
+This gives us enough to complete our original goal. We can define the intentionally complete operation to take two natural numbers. The first is decoded into an SK expression using the above mapping; the second is converted into a church-encoded numeral. The application of the SK expression to the encoded number is evaluated into normal form, and then the previously described procedure is used to decode into a number, if possible. If the output is not a number, then we consider this the same as if the program never normalized.
 
 This works, but it seems way too complicated. Can this be simplified?
 
@@ -147,7 +147,7 @@ We'd use the previous isomorphism to decode a natural number in both arguments t
 
 In particular, both are the identity function. One of the more interesting properties of the SK combinator system is that it has no way of distinguishing between extensionally-equivalent programs. That means using our new encoding there's no way to represent a function that distinguishes between the encoding of those two expressions, even though computable functions with that capability exist.
 
-There's also a bigger, conceptual issue. If the second argument to our universal function is decoded to an arbitrary expression, then such expressions may not be normalized. Such expressions must be equal to other expressions with different encodings. Confluence of the reduction rules of the calculus would prevent us from representing a function that distinguishes between an unnormalized expression, its normal form, and any other expression with the same normal form.
+There's also a bigger, conceptual issue. If the second argument to our universal operation is decoded to an arbitrary expression, then such expressions may not be normalized. Such expressions must be equal to other expressions with different encodings. Confluence of the reduction rules of the calculus would prevent us from representing a function that distinguishes between an unnormalized expression, its normal form, and any other expression with the same normal form.
 
 Of course, such a function will still be *Turing complete*, because we can encode these computations using some scheme; but my aim isn't Turing completeness, it's intentional completeness. I want to actually have code points for each computable function, not some argument that any computable function can be simulated.
 
@@ -169,7 +169,7 @@ There is a philosophical step we are taking by breaking extensional invariance. 
 
 The SF calculus later evolved into an even simpler system, and it's that final system which I'll use to create our final, universal operation.
 
-## The Simplest Universal Function (So far)
+## The Simplest Intentionally Complete Operation (So far)
 
 A simpler system was presented in the book.
 
