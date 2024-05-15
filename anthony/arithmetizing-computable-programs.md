@@ -186,7 +186,7 @@ satisfying the equations
 
 The first two equations mirror the S and K combinators, while the last mirrors the F combinator. Like the SF-calculus, the system is intentionally complete over normalized expressions. The normal forms of this logic match the patterns
 
-* $N ::= \star\ |\ (\star @ N)\ |\ (\star @ N) @ N$
+* $N ::= \star\ |\ \star @ N\ |\ (\star @ N) @ N$
 
 The pattern $((\star @ N) @ N) @ N$ is bound to match one of the left hand sides of the above equations, as that first $N$ must be in one of the three given forms if it is a normal form.
 
