@@ -153,7 +153,7 @@ Of course, such a function will still be *Turing complete*, because we can encod
 
 Is there a way to solve, or bypass, all these problems? The answer is yes! In the paper
 
-* [A combinatory account of internal structure](https://d1wqtxts1xzle7.cloudfront.net/30848902/factorisation-libre.pdf?1392045305=&response-content-disposition=inline%3B+filename%3DA_Combinatory_Account_of_Internal_Struct.pdf&Expires=1715127451&Signature=XbZjV8gZQguUCo9XilVjEXyomZhwH1yGbmPGQCIBlv8Ft1SoTxZDrGM6BxJrOGGBydv8CmAXJxXmPFVel~VJ3-cEs1XxrZMIFw619M-aNDGlt~srBGoVnEYh2E93-p40AeLAd~rEQq~emlKMBTzBl77C597jpl3XIFYxZmazRk244eBgiOkMtbjbVzTtdb-elmLBGVpFP3nvkcRlrEvJOhGRwo2HbMigyRLllErLs61ohwLFzSi9eppUNuejY-EBeYLUaY6Mx0zXfAq-pRRSZB9-6xdKL-OSJa0AxTnAKaatK7DQCQnCYqqinhHS-5qhrAXDSZYDmWGoyOTyKmIjfQ__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA) by Barry Jay and Thomas Given-Wilson
+* [A combinatory account of internal structure](https://opus.lib.uts.edu.au/bitstream/10453/14486/1/2010003973.pdf) by Barry Jay and Thomas Given-Wilson
 
 a variant of the SK calculus is given where $K$ is replaced with a new combinator, $F$, with the following rules
 
