@@ -291,7 +291,7 @@ We can do some stamp collecting to get a library of useful programs. I recommend
 
 This sort of setup should work for any kind of countable datastructure. One of the inefficiencies of using combinators is that there's no trivially efficient ways to connect opposite ends of a program. If we had binders, a la the lambda calculus, this would be improved. One can extend the SF calculus with lambda expressions and it will maintain its ability to distinguish expressions up to beta equivalence (eta reduction can't be used if we want to maintain confluence). But encoding normal forms for that starts getting pretty complicated. I wonder if there might be something better. Maybe using drags?
 
-* [Drag Rewriting](https://inria.hal.science/hal-04029105/file/Drag_Rewriting.pdf)
+* [Drag Rewriting](https://inria.hal.science/hal-04143346/document) by N. Dershowitz, J. Jouannaud, and F. Orejas
 
 Going more mathematical, we might use something like hereditarily finite sets, or relational structures (e.g. edge-colored hypergraphs, equivalent to relational databases). One might speculate that such systems may have more direct connections to mathematical foundations.
 
