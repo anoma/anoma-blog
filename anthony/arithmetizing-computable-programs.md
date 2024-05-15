@@ -8,57 +8,60 @@ excerpt: We discuss different ways of encoding computable functions, describing 
 
 ## Introduction
 
-My task for this post is to describe the simplest way to arithmetize universal computation. To be more precise, I want an operation, $\circ$, such that, for any computable function $f : \mathbb{N} \rightarrow \mathbb{N}$, there exists a number $n_f : \mathbb{N}$ such that $\forall x. n_f \circ x = f(x)$. Such a function is called "intentionally complete". This is not the same as being Turing complete; I'll describe the differences later.
+My task for this post is to describe the simplest way to arithmetize universal computation. To be more precise, I want an operation, $\circ$, such that, for any computable function $f : \mathbb{N} \rightarrow \mathbb{N}$, there exists a number $n_f : \mathbb{N}$ such that $\forall x. n_f \circ x = f(x)$. Such a function is called "intentionally complete". This is not the same as being Turing complete. For a function to be Turing complete, there merely needs to exist an adequate encoding for the function to simulate any computable function. To be intentionally complete is stricter, requiring all computable (first-order) functions to exist on the top level, without any encoding required.
 
-This post is mostly written because I think it's interesting, but, speculatively, this may have implications for future work on zero-knowledge virtual machines. There's a reasonable sense in which a ZK-vm is a cryptographically verifiable, intentionally complete function. Starting with a very simple example of a non-cryptographic functions may lead to valuable insights.
+This post is mostly written because I think it's interesting, but, speculatively, this may have implications for future work on zero-knowledge virtual machines. There's a reasonable sense in which a ZK-vm is (or is trying to be) a cryptographically verifiable, intentionally complete function. Starting with a very simple example of a non-cryptographic function may lead to valuable insights.
 
 ## A Traditional Answer
 
-This is, of course, an old problem at this point, and one whose usual answer comes in the form of a universal Turing machine. However, I don't find this very satisfying. Part of that is due to the fundamental inelegance of Turing machines. Despite how often they're mentioned, they're rarely used. Most places where they seem to be used they are merely mentioned. Whenever Turing machines are brought up in white papers, they are almost never accompanied by details of which machine is being used, nor are actual programs mentioned. I think I've seen maybe three or four papers actually give examples of Turing machine programs, compered to the over a hundred I've seen mention Turing machines without giving any further details.
+This is, of course, an old problem at this point, and one whose usual answer comes in the form of a universal Turing machine. However, I don't find this very satisfying. Part of that is due to the fundamental inelegance of Turing machines. Despite how often they're mentioned, they're rarely used. Most places where they seem to be used they are merely mentioned. Whenever Turing machines are brought up in white papers, they are almost never accompanied by details of which machine is being used, nor are actual programs given. I think I've seen maybe three or four papers actually give examples of Turing machine programs, compared to the over a hundred I've seen mention Turing machines without giving any further details.
 
-Contrast this with the lambda calculus or the SK combinator calculus; models of computation which are much easier to use. It's rare that mentioning of these aren't accompanied by actual programs.
+Contrast this with the lambda calculus or the SK combinator calculus; models of computation which are much easier to use. It's rare that mentions of these aren't accompanied by actual programs.
 
-Part of the difficulty of using Turing machines is the myriad of annoying technicalities that need to be addressed to make use of them. Traditionally, inputs and outputs of Turing machines are infinite tapes. We must define some way to embed a finite input into the tape, and truncate the output to interpret it as finite. Additionally, a Turing machine has two sides, so what does one do with the left side of the tape? Additionally, how is composition supposed to be handled? When composing Turing machines, T and U, are we supposed to craft them into a new Turing machine, or do we run the output of U as the input of T, which isn't a new Turing machine, but a new, meta-construction? If the later, what is the full model of computation?
+Part of the difficulty of using Turing machines is the myriad of annoying technicalities that need to be addressed to make use of them. Traditionally, inputs and outputs of Turing machines are infinite tapes. We must define some way to embed a finite input into the tape, and truncate the output to interpret it as finite. Additionally, a Turing machine has two sides, so what does one do with the left side of the tape?
+
+One of the gnarliest problems is how to handle function composition. Given two programs, what does it mean to compose them? It should, in practice, be a new program which does the same thing as running the first program on some input, then issuing the output as the input to a second program and running that to get the final output. I've seen some papers hand wave composition as bitstring concatenation, but that doesn't define function composition in practice.
 
 These questions are not non-starters; I list them to demonstrate how many technicalities are waved away when Turing machines are claimed to be used as a definition for computable function. All these problems can be solved, but this requires making arbitrary choices along the way.
 
 Picking something like the SK combinator calculus or lambda calculus doesn't get us away from all problems either; though the list of outstanding choices is smaller.
 
-Let's go through the details.
+Let's go through the details of using SK combinators to get an intentionally complete function.
 
-Firstly, the SK combinator system has a syntax generated by two constants, S and K, and a binary operation called application, which I'll denote "@". This is a bit more verbose than usual presentations, but I think being explicit here will aid what I plan. The system has two equations defining the evolution of the system.
+Firstly, the SK combinator system has a syntax generated by two constants, $S$ and $K$, and a binary operation called application, which I'll denote $@$. This is a bit more verbose than usual presentations, but I think being explicit here will aid what I plan. The system has two equations defining the evolution of the system.
 
- - $((S @ x) @ y) @ z = (x @ z) @ (y @ z)$
- - $(K @ y) @ z = y$
+* $((S @ x) @ y) @ z = (x @ z) @ (y @ z)$
+* $(K @ y) @ z = y$
 
 SK combinator expressions are not numbers, so we must choose an encoding. A typical encoding is the Church encoding, in which case we may define
 
- - $0 = K$
- - $1 + x = (S @ (K @ (S @ ((S @ K) @ K)))) @ x$
+* $0 = K$
+* $1 + x = (S @ (K @ (S @ ((S @ K) @ K)))) @ x$
 
 This works by encoding programs that iterate a function a number of times equal to the number being encoded. If $e_n$ is the encoding of the number $n$, then $(e_n @ z) @ f = f(f(f( ... f(f(z)) ... )))$, where $f$ is repeated $n$ times. To demonstrate, we may observe that
 
- - $(0 @ z) @ f = (K @ z) @ f = z$
- - $((1 + 0) @ z) @ f = \
-        (((S @ (K @ (S @ ((S @ K) @ K)))) @ 0) @ z) @ f = \
-        (((K @ (S @ ((S @ K) @ K))) @ z) @ (0 @ z)) @ f = \
-        ((S @ ((S @ K) @ K)) @ (0 @ z)) @ f = \
-        (((S @ K) @ K) @ f) @ ((0 @ z) @ f) = \
-        (((S @ K) @ K) @ f) @ z = \
-        (((S @ K) @ K) @ f) @ z = \
-        ((K @ f) @ (K @ f)) @ z = \
+* $(0 @ z) @ f = (K @ z) @ f = z$
+* $((1 + 0) @ z) @ f = \\ \quad
+        (((S @ (K @ (S @ ((S @ K) @ K)))) @ 0) @ z) @ f = \\ \quad
+        (((K @ (S @ ((S @ K) @ K))) @ z) @ (0 @ z)) @ f = \\ \quad
+        ((S @ ((S @ K) @ K)) @ (0 @ z)) @ f = \\ \quad
+        (((S @ K) @ K) @ f) @ ((0 @ z) @ f) = \\ \quad
+        (((S @ K) @ K) @ f) @ z = \\ \quad
+        (((S @ K) @ K) @ f) @ z = \\ \quad
+        ((K @ f) @ (K @ f)) @ z = \\ \quad
         f @ z$
 
 By iterating $1 +$, we can build up an encoding for any natural number. Further, it's semi-decidable if a program encodes a natural number, since we can just apply the variables $z$ and $f$ and, if it normalizes to an iteration of $f$, we can just count the $f$ occurrences to get back the encoded number.
 
 This doesn't complete our original goal, since we've yet to define a function that can decode computable functions from natural numbers. To do this, we merely need to define an injection from SK expressions onto natural numbers. In fact, it's quite easy to define a bijection. Firstly, note that SK expressions are the type in the initial algebra of the functor
- - $F(X) := 2 + X \times X$
- 
-Each layer is either one of two elements (S or K), or it is a binary branch. The inductive type, $\mu X. F(X) \equiv F(\mu X. F(X))$ is isomorphic to SK expressions. If we could define an isomorphism $\mathbb{N} \simeq F(\mathbb{N})$, then we could use this in one direction as an algebra to collapse an expression into a natural number. We could also use it in the other direction as a coalgebra to build an expression, given a natural number.
+
+* $F(X) := 2 + X \times X$
+
+Each layer is either one of two elements ($S$ or $K$), or it is a binary branch. The inductive type, $\mu X. F(X) \equiv F(\mu X. F(X))$ is isomorphic to SK expressions. If we could define an isomorphism $\mathbb{N} \simeq F(\mathbb{N})$, then we could use this in one direction as an algebra to collapse an expression into a natural number. We could also use it in the other direction as a coalgebra to build an expression, given a natural number.
 
 Showing that $\mathbb{N} \simeq 2 + \mathbb{N}$ is easy, as we can simply map the two elements to $0$ and $1$, and add $2$ to an actual number. $\mathbb{N} \simeq \mathbb{N} \times \mathbb{N}$ is more complicated, but it's a well-studied problem, with a typical example of such a map being cantor pairing. See also
 
- - [Efficient Pairing Functions - and Why You Should Care](https://www.researchgate.net/profile/Arnold-Rosenberg/publication/220181086_Efficient_Pairing_Functions_-_and_Why_You_Should_Care/links/54450b110cf2534c766086ff/Efficient-Pairing-Functions-and-Why-You-Should-Care.pdf) by Arnold L. Rosenberg
+* [Efficient Pairing Functions - and Why You Should Care](https://www.researchgate.net/profile/Arnold-Rosenberg/publication/220181086_Efficient_Pairing_Functions_-_and_Why_You_Should_Care/links/54450b110cf2534c766086ff/Efficient-Pairing-Functions-and-Why-You-Should-Care.pdf) by Arnold L. Rosenberg
 
 For this post, I'll use this pairing function, which is my personal favorite. 
 
@@ -130,7 +133,7 @@ decodeSK n = SK (go n)
     go = Fix . fmap go . decodeSKF
 ```
 
-This gives us enough to complete our original goal. We can define the universal function to take two natural numbers. The first is decoded into an SK expression using the above mapping; the second is converted into a church-encoded numeral. The application of the SK expression to the encoded number evaluated into normal form, and then the previously described procedure is used to decode into a number, if possible. If the output is not a number, then we consider this the same as if the program never normalized.
+This gives us enough to complete our original goal. We can define the universal function to take two natural numbers. The first is decoded into an SK expression using the above mapping; the second is converted into a church-encoded numeral. The application of the SK expression to the encoded number is evaluated into normal form, and then the previously described procedure is used to decode into a number, if possible. If the output is not a number, then we consider this the same as if the program never normalized.
 
 This works, but it seems way too complicated. Can this be simplified?
 
@@ -138,49 +141,52 @@ This works, but it seems way too complicated. Can this be simplified?
 
 How can we simplify the previous construction? One obvious place is to look at the encoding. Instead of using church encodings, there are many others we could use. But, with our isomorphism, we can encode numbers as expressions and vice versa. Does that work?
 
-We'd use the previous isomorphism to decode a natural number in both arguments to an SK expression, evaluate it to normal form, then decode the output using the isomorphism. This, however, doesn't define a universal function. The most obvious way to see this is to observe that the outputs are normalized. This means any compatible function capable of outputting a number decoding to a non-normalizes SK expression cannot be expressed. This specific issue can be fixed by devising an encoding of normalized expressions and using that encoding for decoding the output. That's not hard to do, but there's a bigger issue that's not solved so easily. Consider the expressions $(S @ K) @ S$ and $(S @ K) @ K$. These are both extensionally equivalent; that is,
- - $\forall x. ((S @ K) @ S) @ x = ((S @ K) @ K) @ x$
+We'd use the previous isomorphism to decode a natural number in both arguments to an SK expression, evaluate it to normal form, then decode the output using the isomorphism. This, however, doesn't define a universal function. The most obvious way to see this is to observe that the outputs are normalized. This means any computable function capable of outputting a number that decodes to a non-normalized SK expression cannot be expressed. This specific issue can be fixed by devising an encoding of normalized expressions and using that encoding for decoding the output. That's not hard to do, but there's a bigger issue that's not solved so easily. Consider the expressions $(S @ K) @ S$ and $(S @ K) @ K$. These are both extensionally equivalent; that is,
+
+* $\forall x. ((S @ K) @ S) @ x = ((S @ K) @ K) @ x$
  
-In particular, both are the identity function. One of the more interesting properties of the SK combinator system is that it has no way of distinguishing between extensionally-equivalent programs. That means, using our new encoding there's no way to represent a function that distinguishes between then encoding of those two expressions, even though computable functions with that capability exist.
+In particular, both are the identity function. One of the more interesting properties of the SK combinator system is that it has no way of distinguishing between extensionally-equivalent programs. That means using our new encoding there's no way to represent a function that distinguishes between then encoding of those two expressions, even though computable functions with that capability exist.
 
 There's also a bigger, conceptual issue. If the second argument to our universal function is decoded to an arbitrary expression, then such expressions may not be normalized. Such expressions must be equal to other expressions with different encodings. Confluence of the reduction rules of the calculus would prevent us from representing a function that distinguishes between an unnormalized expression, its normal form, and any other expression with the same normal form.
 
-Of course, such a function will still be *Turing complete*, because we can encode these computations using some scheme; by my aim isn't Turing completeness, it's intentional completeness. I want to actually have code points for each computable function, not some argument that any computable function can be simulated.
+Of course, such a function will still be *Turing complete*, because we can encode these computations using some scheme; but my aim isn't Turing completeness, it's intentional completeness. I want to actually have code points for each computable function, not some argument that any computable function can be simulated.
 
 Is there a way to solve, or bypass, all these problems? The answer is yes! In the paper
 
- - [A combinatory account of internal structure](https://d1wqtxts1xzle7.cloudfront.net/30848902/factorisation-libre.pdf?1392045305=&response-content-disposition=inline%3B+filename%3DA_Combinatory_Account_of_Internal_Struct.pdf&Expires=1715127451&Signature=XbZjV8gZQguUCo9XilVjEXyomZhwH1yGbmPGQCIBlv8Ft1SoTxZDrGM6BxJrOGGBydv8CmAXJxXmPFVel~VJ3-cEs1XxrZMIFw619M-aNDGlt~srBGoVnEYh2E93-p40AeLAd~rEQq~emlKMBTzBl77C597jpl3XIFYxZmazRk244eBgiOkMtbjbVzTtdb-elmLBGVpFP3nvkcRlrEvJOhGRwo2HbMigyRLllErLs61ohwLFzSi9eppUNuejY-EBeYLUaY6Mx0zXfAq-pRRSZB9-6xdKL-OSJa0AxTnAKaatK7DQCQnCYqqinhHS-5qhrAXDSZYDmWGoyOTyKmIjfQ__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA) by Barry Jay and Thomas Given-Wilson
+* [A combinatory account of internal structure](https://d1wqtxts1xzle7.cloudfront.net/30848902/factorisation-libre.pdf?1392045305=&response-content-disposition=inline%3B+filename%3DA_Combinatory_Account_of_Internal_Struct.pdf&Expires=1715127451&Signature=XbZjV8gZQguUCo9XilVjEXyomZhwH1yGbmPGQCIBlv8Ft1SoTxZDrGM6BxJrOGGBydv8CmAXJxXmPFVel~VJ3-cEs1XxrZMIFw619M-aNDGlt~srBGoVnEYh2E93-p40AeLAd~rEQq~emlKMBTzBl77C597jpl3XIFYxZmazRk244eBgiOkMtbjbVzTtdb-elmLBGVpFP3nvkcRlrEvJOhGRwo2HbMigyRLllErLs61ohwLFzSi9eppUNuejY-EBeYLUaY6Mx0zXfAq-pRRSZB9-6xdKL-OSJa0AxTnAKaatK7DQCQnCYqqinhHS-5qhrAXDSZYDmWGoyOTyKmIjfQ__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA) by Barry Jay and Thomas Given-Wilson
 
 a variant of the SK calculus is given where $K$ is replaced with a new combinator, $F$, with the following rules
 
- - $((F @ S) @ x) @ y = x$
- - $((F @ F) @ x) @ y = x$
- - $((F @ (a @ b)) @ x) @ y = (y @ a) @ b$
+* $((F @ S) @ x) @ y = x$
+* $((F @ F) @ x) @ y = x$
+* $((F @ (a @ b)) @ x) @ y = (y @ a) @ b$
 
 Notice that $F$ has multiple rules, and it effectively pattern-matches on expressions. For the sake of confluence, in order for that last rule to make sense, $a @ b$ must be in, at least, head-normal form.
 
 This new calculus is able to distinguish between arbitrary normal forms, thus solving the extensionality issue. We can also solve the unnormalized expression issue by simply not considering them; decode the second argument into a normal form rather than an arbitrary expression. Defining an isomorphism into normalized SF (or SK) expressions is not hard, but it is more elaborate than the previous construction, so I'll leave it as an exercise to the interested reader.
 
-The SF calculus later evolved into an even simpler system, and it's that final system which I'll use to create our final, universal function.
+There is a philosophical step we are taking by breaking extensional invariance. We are saying that we don't just care about the input-output relations of a function, but care about how those functions are implemented so that we can make the (higher-order) notion of a function compatible with first-order data. This is, perhaps, a bit hypocritical since an intentionally complete operation doesn't care about the intention of all computable functions, just that all extensions of computable functions are assigned some code point. But, hypocrite or not, this step is necessary.
+
+The SF calculus later evolved into an even simpler system, and it's that final system which I'll use to create our final, universal operation.
 
 ## The Simplest Universal Function (So far)
 
 A simpler system was presented in the book.
 
- - [Reflective Programs in Tree Calculus](https://raw.githubusercontent.com/barry-jay-personal/tree-calculus/master/tree_book.pdf) by Barry Jay
- 
+* [Reflective Programs in Tree Calculus](https://raw.githubusercontent.com/barry-jay-personal/tree-calculus/master/tree_book.pdf) by Barry Jay
+
 There's lots of interesting stuff in that book, but, for our purposes, we will only need the equations of the system. The "Tree Calculus" is generated by the grammar
- - $T ::= *\ |\ T @ T$
+* $T ::= *\ |\ T @ T$
  
 satisfying the equations
 
- - $((* @ *) @ y) @ z = y$
- - $((* @ (* @ x)) @ y) @ z = (y @ z) @ (x @ z)$
- - $((* @ ((* @ w) @ x)) @ y) @ z = (z @ w) @ x$
+* $((* @ *) @ y) @ z = y$
+* $((* @ (* @ x)) @ y) @ z = (y @ z) @ (x @ z)$
+* $((* @ ((* @ w) @ x)) @ y) @ z = (z @ w) @ x$
 
 The first two equations mirror the S and K combinators, while the last mirrors the F combinator. Like the SF-calculus, the system is intentionally complete over normalized expressions. The normal forms of this logic match the patterns
 
- - $N ::= *\ |\ * @ N\ |\ (* @ N) @ N$
+* $N ::= * | * @ N | (* @ N) @ N$
 
 The pattern $((* @ N) @ N) @ N$ is bound to match one of the left hand sides of the above equations, as that first $N$ must be in one of the three given forms if it is a normal form.
 
@@ -202,9 +208,9 @@ app (Fan (Fan w x) y) z = app (app z w) x
 
 If we take isomorphisms seriously, then we're done. `BTree` is just a notation for the natural numbers, no different than choosing a base representation. This approach has been taken in other work, to interesting results, such as
 
- - [A generic numbering system based on Catalan families of combinatorial objects](https://arxiv.org/pdf/1406.1796) by Paul Tarau
+* [A generic numbering system based on Catalan families of combinatorial objects](https://arxiv.org/pdf/1406.1796) by Paul Tarau
 
-And this `app` function meets the qualifications for an intentionally complete function. However, if we want to use a more standard number system, we need to exhibit an isomorphism with `BTree`. The only missing ingredient is $\mathbb{N} \simeq \mathbb{N} + \mathbb{N}$. We can accomplish this by simply encoding the injection as the least significant bit. We can inject onto the left by multiplying by 2. We can inject on the right by multiplying by 2 and adding 1. And we can forget the injection by doing floor-division by 2; thus removing the least significant bit. With this in hand, we can construct an isomorphism rather easily;
+And this `app` function meets the qualifications for an intentionally complete operation. However, if we want to use a more standard number system, we need to exhibit an isomorphism with `BTree`. The only missing ingredient is $\mathbb{N} \simeq \mathbb{N} + \mathbb{N}$. We can accomplish this by simply encoding the injection as the least significant bit. We can inject onto the left by multiplying by 2. We can inject on the right by multiplying by 2 and adding 1. And we can forget the injection by doing floor-division by 2; thus removing the least significant bit. With this in hand, we can construct an isomorphism rather easily;
 
 ```haskell
 data BTreeF r = Leaf | Branch r | Fan r r
@@ -236,7 +242,7 @@ decodeBTree n = BTree (go n)
     go = Fix . fmap go . decodeBTreeF
 ```
 
-We can then define out function over ordinary numbers by factoring through this encoding
+We can then define our function over ordinary numbers by factoring through this encoding
 
 ```haskell
 (@) :: Integer -> Integer -> Integer
@@ -281,25 +287,38 @@ And that's the final version of the function I will present in this post.
 
 ## Speculation on Improvements
 
-We can do some stamp collecting to get a library of useful programs. I recommend reading Barry Jay's book, if you're interested. This sort of setup should work for any kind of countable datastructure. One of the inefficiencies of using combinators is that there's no trivially efficient ways to connect opposite ends of a program. If we had binders, a la the lambda calculus, this would be improved. One can extend the SF calculus with lambda expressions and it will maintain its ability to distinguish expressions up to beta equivalence (eta reduction can't be used if we want to maintain confluence). But encoding normal forms for that starts getting pretty complicated. I wonder if there might be something better. Maybe using drags?
+We can do some stamp collecting to get a library of useful programs. I recommend reading Barry Jay's book, if you're interested. 
 
- - [Drag Rewriting](https://inria.hal.science/hal-04029105/file/Drag_Rewriting.pdf)
+This sort of setup should work for any kind of countable datastructure. One of the inefficiencies of using combinators is that there's no trivially efficient ways to connect opposite ends of a program. If we had binders, a la the lambda calculus, this would be improved. One can extend the SF calculus with lambda expressions and it will maintain its ability to distinguish expressions up to beta equivalence (eta reduction can't be used if we want to maintain confluence). But encoding normal forms for that starts getting pretty complicated. I wonder if there might be something better. Maybe using drags?
 
-Going more mathematical, we might use something like hereditarily finite sets, or relational structures (e.g. edge-colored hypergraphs, equivalen to relational databases). One might speculate that such systems may have more direct connections to mathematical foundations.
+* [Drag Rewriting](https://inria.hal.science/hal-04029105/file/Drag_Rewriting.pdf)
 
-One might also desire simpler systems, ones defined over simpler sata structures such as bitstrings or unitary numbers or full binary trees. There really isn't a robust theory for how intentionally complete operations can be made. Intuitively, one must be able to delete, copy, permute, compose, and pattern-match. The tree calcus (and the SK calculus) is clever in how it's able to consolidate several of those into a single equation. I've had no success thus far in trying to create my own systems using different data structures. Graphical ones, especcially, are hard to reason about.
+Going more mathematical, we might use something like hereditarily finite sets, or relational structures (e.g. edge-colored hypergraphs, equivalent to relational databases). One might speculate that such systems may have more direct connections to mathematical foundations.
+
+One might also desire simpler systems, ones defined over simpler data structures such as bitstrings or unitary numbers or full binary trees. There really isn't a robust theory for how intentionally complete operations can be made. Intuitively, one must be able to delete, copy, permute, compose, and pattern-match. The tree calculus (and the SK calculus) is clever in how it's able to consolidate several of those into a single equation. I've had no success thus far in trying to create my own systems using different data structures. Graphical ones, especially, are hard to reason about.
 
 For ZK applications, the obvious structure to think about would be lists (or some other container of) finite field elements. I suspect some design using bitstrings would work similarly.
 
+The idea of breaking extensionality for the sake of making higher-order constructs compatible with first-order ones isn't new. It's appeared in many guises in the past. One idea I've speculated on is creating a calculus of higher-order relations; essentially an SF-calculus for relational programming. HiLog is based on implementing higher-order logic programming by abandoning the idea that logic programs should represent relations up to extensionality, and it's quite elegant;
+
+* [HiLog: A foundation for higher-order logic programming](https://core.ac.uk/download/pdf/82072266.pdf) by W. Chen, M. Kifer, and D.S. Warren
+
+This may be a greater sin than previous as we are abandoning the semantic foundation of logic programming in its entirety, which draws into question whether we're really programming with logic anymore.
+
+Perhaps this idea can be combined with one of these to get such an adequate calculus;
+
+* [First-order unification using variable-free relational algebra](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8189530) by EJG Arias, J Lipton, J Mariño
+* A Family of Unification-Oblivious Program Transformations and Their Applications by Paul Tarau
+
+Relational programming can, through its nondeterminism, represent some things, such as constraints, more succinctly than functional programs. Such a calculus would arithmetize all computable relations, not just functions.
+
 ## Conclusion
 
-I've described what I believe to be the simplest existing method to arithmetize computable functions. An obvious next step to make this useful is to actually describe some arithmetic circuit representation. This is where I'm not convinced it will turn out all that useful. Efficiency is often the name of the game when it comes to ZK-VMs. The idea of using SK combinators as a ZK-VM has been arond for a while, but what's not clear is how to do so efficiently. My bet would be translating the calculus to string diagrams then designing a circuit to check diagram traces, a la.
+I've described what I believe to be the simplest existing method to arithmetize computable functions. An obvious next step to make this useful is to actually describe some arithmetic circuit representation. This is where I'm not convinced it will turn out all that useful. Efficiency is often the name of the game when it comes to ZK-VMs. The idea of using SK combinators as a ZK-VM has been around for a while, but what's not clear is how to do so efficiently. My bet would be translating the calculus to string diagrams then designing a circuit to check diagram traces, a la.
 
- - [Arithmetization of Functional Program Execution via Interaction Nets in Halo 2](https://eprint.iacr.org/2022/1211) by Me
+* [Arithmetization of Functional Program Execution via Interaction Nets in Halo 2](https://eprint.iacr.org/2022/1211) by Me
 
-This is similar. Although, decomposing things into traces like this loses the appeal of having everything be arithmetical from the start. To that end, it may be more natural to arithmetize using an encoding of big ints, but that's not too efficient either. 
+Something like this would work for the tree calculus. Although, decomposing things into traces like this loses the appeal of having everything be arithmetical from the start. To that end, it may be more natural to arithmetize using an encoding of big ints, but that's not too efficient either.
 
-While I'm pessimistic on the prospect, maybe a reader will be inspired. In the mean time, it's pretty neat anyway.
-
-
+While I'm pessimistic on the prospect, maybe a reader will be inspired. Maybe I'm thinking of the wrong applications. Perhapse something related to fully homomorphic encryption might make use of this. In the mean time, it's pretty neat anyway, and I hope you found it as interesting as I did.
 
