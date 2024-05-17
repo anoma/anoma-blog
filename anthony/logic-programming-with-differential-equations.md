@@ -3,7 +3,7 @@ title: Logic Programming with Differential Equations
 publish_date: 2024-01-19
 category: compilers
 image: media/differential-equations-01.png
-excerpt: We delve into differential equations as a surprisingly flexible form of computation. We explore ODEs capable of encoding and solving complex logic problems, unlocking potentially efficient ways to approach tasks like graph coloring and prime factorization.
+excerpt: We explore differential equations as a surprisingly flexible form of computation. We explore ODEs capable of encoding and solving complex logic problems, unlocking potentially efficient ways to approach tasks like graph coloring and prime factorization.
 ---
 
 ## Introduction
