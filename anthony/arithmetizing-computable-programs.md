@@ -203,7 +203,7 @@ If we only care about normal forms, we can implement the tree calculus over them
 app Leaf z = Branch z
 app (Branch y) z = Fan y z
 app (Fan Leaf y) z = y
-app (Fan (Branch x) y) z = app (app y z) (app x y)
+app (Fan (Branch x) y) z = app (app y z) (app x z)
 app (Fan (Fan w x) y) z = app (app z w) x
 ```
 
