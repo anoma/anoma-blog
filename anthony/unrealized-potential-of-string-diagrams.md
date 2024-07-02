@@ -2,7 +2,7 @@
 title: The Unrealized Potential of String Diagrams in ZKVM design
 publish_date: ???
 category: compilers
-image: media/hylo-trace-01.webp
+image: media/string_puppet.webp
 excerpt: This post will describe string diagrams and explain why they are a good starting point when it comes to designing ZKVMs.
 ---
 
