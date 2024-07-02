@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Tree Visualizer with Ports</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js"></script>
+    <script src="https://unpkg.com/react-force-graph-2d"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        .button {
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #AB0000;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #AB0000;
+        }
+        .button:hover {
+            background-color: #e0e0e0;
+        }
+        .examples-text {
+            color: #AB0000;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const TreeVisualizer = () => {
+            const [inputText, setInputText] = React.useState('pqr(xyz,abc)');
+            const [graphData, setGraphData] = React.useState({ nodes: [], links: [] });
+
+            const examples = [
+                { name: 'Simple', tree: 'Root(Left,Right)' },
+                { name: 'Nested', tree: 'Parent(Child1(Grandchild),Child2)' },
+                { name: 'Complex', tree: 'A(B(D,E),C(F,G))' },
+                { name: 'Mixed', tree: 'pqr(xyz,abc(def,ghi))' }
+            ];
+
+            const parseTree = (input) => {
+                const nodes = [];
+                const links = [];
+                let id = 0;
+
+                const parse = (str, parentId = null, parentPort = null) => {
+                    let i = 0;
+                    let name = '';
+                    while (i < str.length && str[i] !== '(' && str[i] !== ',') {
+                        name += str[i];
+                        i++;
+                    }
+
+                    const node = { id: id++, name: name.trim(), childCount: 0 };
+                    nodes.push(node);
+
+                    if (parentId !== null) {
+                        links.push({ 
+                            source: parentId, 
+                            target: node.id,
+                            sourcePort: parentPort,
+                            targetPort: 0  // Root port
+                        });
+                    }
+
+                    if (i < str.length && str[i] === '(') {
+                        i++;  // Skip the opening parenthesis
+                        let childStart = i;
+                        let depth = 1;
+                        let childPort = 1;  // Start from port 1 (clockwise from root port)
+
+                        while (i < str.length && depth > 0) {
+                            if (str[i] === '(') depth++;
+                            if (str[i] === ')') depth--;
+                            if (depth === 1 && str[i] === ',') {
+                                parse(str.slice(childStart, i), node.id, childPort);
+                                childStart = i + 1;
+                                childPort++;
+                                node.childCount++;
+                            }
+                            i++;
+                        }
+
+                        if (childStart < i - 1) {
+                            parse(str.slice(childStart, i - 1), node.id, childPort);
+                            node.childCount++;
+                        }
+                    }
+
+                    return node;
+                };
+
+                try {
+                    parse(input);
+                    return { nodes, links };
+                } catch (error) {
+                    console.error('Invalid input:', error);
+                    return null;
+                }
+            };
+
+            React.useEffect(() => {
+                const newGraphData = parseTree(inputText);
+                if (newGraphData) {
+                    setGraphData(newGraphData);
+                }
+            }, [inputText]);
+
+            const nodeRadius = 20;
+
+            const drawNode = (node, ctx, globalScale) => {
+                const label = node.name;
+                const fontSize = 12/globalScale;
+                const scaledNodeRadius = nodeRadius/globalScale;
+                
+                // Draw main circle
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, scaledNodeRadius, 0, 2 * Math.PI, false);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                ctx.strokeStyle = '#AB0000';
+                ctx.stroke();
+                
+                // Draw text
+                ctx.font = `${fontSize}px Sans-Serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'black';
+                ctx.fillText(label, node.x, node.y);
+
+                // Draw ports
+                const portRadius = 3/globalScale;
+                for (let i = 0; i <= node.childCount; i++) {
+                    const angle = (i * 2 * Math.PI) / (node.childCount + 1) - Math.PI/2;
+                    const portX = node.x + scaledNodeRadius * Math.cos(angle);
+                    const portY = node.y + scaledNodeRadius * Math.sin(angle);
+                    
+                    ctx.beginPath();
+                    ctx.arc(portX, portY, portRadius, 0, 2 * Math.PI, false);
+                    ctx.fillStyle = i === 0 ? '#AB0000' : 'white';
+                    ctx.fill();
+                    ctx.strokeStyle = '#AB0000';
+                    ctx.stroke();
+                }
+            };
+
+            const getPortPosition = (node, portIndex, globalScale) => {
+                const scaledNodeRadius = nodeRadius / globalScale;
+                const angle = (portIndex * 2 * Math.PI) / (node.childCount + 1) - Math.PI/2;
+                return {
+                    x: node.x + scaledNodeRadius * Math.cos(angle),
+                    y: node.y + scaledNodeRadius * Math.sin(angle)
+                };
+            };
+
+            return (
+                <div style={{ display: 'flex', height: '100vh' }}>
+                    <div style={{ width: '33%', padding: '1rem', display: 'flex', flexDirection: 'column' }}>
+                        <textarea
+                            style={{ width: '100%', height: '70%', padding: '0.5rem', border: '1px solid #AB0000', borderRadius: '4px', marginBottom: '1rem', backgroundColor: '#3F3F3F', color: 'white' }}
+                            value={inputText}
+                            onChange={(e) => setInputText(e.target.value)}
+                            placeholder="Enter tree structure (e.g., pqr(xyz,abc))"
+                        />
+                        <div>
+                            <h4 className="examples-text">Examples:</h4>
+                            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+                                {examples.map((example, index) => (
+                                    <button
+                                        key={index}
+                                        className="button"
+                                        onClick={() => setInputText(example.tree)}
+                                    >
+                                        {example.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{ width: '67%' }}>
+                        <ForceGraph2D
+                            graphData={graphData}
+                            nodeCanvasObject={(node, ctx, globalScale) => drawNode(node, ctx, globalScale)}
+                            nodePointerAreaPaint={(node, color, ctx) => {
+                                ctx.fillStyle = color;
+                                const size = 2 * nodeRadius;
+                                ctx.fillRect(node.x - size / 2, node.y - size / 2, size, size);
+                            }}
+                            linkColor={() => '#AB0000'}
+                            linkWidth={2}
+                            linkCanvasObject={(link, ctx, globalScale) => {
+                                const start = getPortPosition(link.source, link.sourcePort, globalScale);
+                                const end = getPortPosition(link.target, link.targetPort, globalScale);
+
+                                ctx.beginPath();
+                                ctx.moveTo(start.x, start.y);
+                                ctx.lineTo(end.x, end.y);
+                                ctx.strokeStyle = '#AB0000';
+                                ctx.lineWidth = 2 / globalScale;
+                                ctx.stroke();
+                            }}
+                            linkDirectionalArrowLength={0}
+                        />
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<TreeVisualizer />, document.getElementById('root'));
+    </script>
+</body>
+</html>

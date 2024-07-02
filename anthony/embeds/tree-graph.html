@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Tree Visualizer</title>
+    <title>Interactive Tree Visualizer - Final Color Scheme</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.development.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.development.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
@@ -20,12 +20,16 @@
             margin: 5px;
             padding: 5px 10px;
             background-color: #f0f0f0;
-            border: 1px solid #ccc;
+            border: 1px solid #AB0000;
             border-radius: 4px;
             cursor: pointer;
+            color: #AB0000;
         }
         .button:hover {
             background-color: #e0e0e0;
+        }
+        .examples-text {
+            color: #AB0000;
         }
     </style>
 </head>
@@ -34,14 +38,14 @@
 
     <script type="text/babel">
         const TreeVisualizer = () => {
-            const [inputText, setInputText] = React.useState('g(a(b))');
+            const [inputText, setInputText] = React.useState('pqr(xyz,abc)');
             const [graphData, setGraphData] = React.useState({ nodes: [], links: [] });
 
             const examples = [
-                { name: 'Simple', tree: 'a(b,c)' },
-                { name: 'Nested', tree: 'x(y(z),w)' },
-                { name: 'Complex', tree: 'a(b(d,e),c(f,g))' },
-                { name: 'Deep', tree: 'm(n(o(p(q))))' }
+                { name: 'Simple', tree: 'Root(Left,Right)' },
+                { name: 'Nested', tree: 'Parent(Child1(Grandchild),Child2)' },
+                { name: 'Complex', tree: 'A(B(D,E),C(F,G))' },
+                { name: 'Mixed', tree: 'pqr(xyz,abc(def,ghi))' }
             ];
 
             const parseTree = (input) => {
@@ -49,30 +53,39 @@
                 const links = [];
                 let id = 0;
 
-                const parse = (str) => {
-                    const node = { id: id++, name: str[0] };
-                    nodes.push(node);
-
-                    let i = 2;
-                    let childStart = i;
-                    let depth = 0;
-
-                    while (i < str.length && (depth > 0 || str[i] !== ')')) {
-                        if (str[i] === '(') {
-                            depth++;
-                        } else if (str[i] === ')') {
-                            depth--;
-                        } else if (depth === 0 && str[i] === ',') {
-                            const childNode = parse(str.slice(childStart, i));
-                            links.push({ source: node.id, target: childNode.id });
-                            childStart = i + 1;
-                        }
+                const parse = (str, parentId = null) => {
+                    let i = 0;
+                    let name = '';
+                    while (i < str.length && str[i] !== '(' && str[i] !== ',') {
+                        name += str[i];
                         i++;
                     }
 
-                    if (childStart < i) {
-                        const childNode = parse(str.slice(childStart, i));
-                        links.push({ source: node.id, target: childNode.id });
+                    const node = { id: id++, name: name.trim() };
+                    nodes.push(node);
+
+                    if (parentId !== null) {
+                        links.push({ source: parentId, target: node.id });
+                    }
+
+                    if (i < str.length && str[i] === '(') {
+                        i++;  // Skip the opening parenthesis
+                        let childStart = i;
+                        let depth = 1;
+
+                        while (i < str.length && depth > 0) {
+                            if (str[i] === '(') depth++;
+                            if (str[i] === ')') depth--;
+                            if (depth === 1 && str[i] === ',') {
+                                parse(str.slice(childStart, i), node.id);
+                                childStart = i + 1;
+                            }
+                            i++;
+                        }
+
+                        if (childStart < i - 1) {
+                            parse(str.slice(childStart, i - 1), node.id);
+                        }
                     }
 
                     return node;
@@ -98,13 +111,13 @@
                 <div style={{ display: 'flex', height: '100vh' }}>
                     <div style={{ width: '33%', padding: '1rem', display: 'flex', flexDirection: 'column' }}>
                         <textarea
-                            style={{ width: '100%', height: '70%', padding: '0.5rem', border: '1px solid #ccc', borderRadius: '4px', marginBottom: '1rem' }}
+                            style={{ width: '100%', height: '70%', padding: '0.5rem', border: '1px solid #AB0000', borderRadius: '4px', marginBottom: '1rem', backgroundColor: '#3F3F3F', color: 'white' }}
                             value={inputText}
                             onChange={(e) => setInputText(e.target.value)}
-                            placeholder="Enter tree structure (e.g., g(a(b)))"
+                            placeholder="Enter tree structure (e.g., pqr(xyz,abc))"
                         />
                         <div>
-                            <h4>Examples:</h4>
+                            <h4 className="examples-text">Examples:</h4>
                             <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                                 {examples.map((example, index) => (
                                     <button
@@ -129,13 +142,30 @@
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
                                 ctx.fillStyle = 'black';
+                                
+                                // Draw circle
+                                const textWidth = ctx.measureText(label).width;
+                                const nodeRadius = Math.max(20, textWidth/2 + 10) / globalScale;
+                                ctx.beginPath();
+                                ctx.arc(node.x, node.y, nodeRadius, 0, 2 * Math.PI, false);
+                                ctx.fillStyle = 'white';
+                                ctx.fill();
+                                ctx.strokeStyle = '#AB0000';
+                                ctx.stroke();
+                                
+                                // Draw text
+                                ctx.fillStyle = 'black';
                                 ctx.fillText(label, node.x, node.y);
                             }}
-                            nodePointerAreaPaint={(node, color, ctx) => {
+                            nodePointerAreaPaint={(node, color, ctx, globalScale) => {
                                 ctx.fillStyle = color;
-                                const size = 5;
+                                const textWidth = ctx.measureText(node.name).width;
+                                const nodeRadius = Math.max(20, textWidth/2 + 10) / globalScale;
+                                const size = 2 * nodeRadius * globalScale;
                                 ctx.fillRect(node.x - size / 2, node.y - size / 2, size, size);
                             }}
+                            linkColor={() => '#AB0000'}
+                            linkWidth={2}
                         />
                     </div>
                 </div>
