@@ -70,9 +70,6 @@ With these in hand, we can see how to improve the lambda calculus. With a built-
 
 <image src="media/linear-beta-reduction.svg" width="100%"></image> 
 
-[NOTE: Add rule interactable]
-
-
 This also doesn't recreate the naming problems. There are no names for the variables appearing in string diagrams. All variables become strings/edges connecting nodes, and these variables are "named" by their position within the diagram. This eliminates the need for names without eliminating variables themselves. So we've acomplished the original goal of combinator calculus without its inefficiencies.
 
 This also gets rid of unnecessary scoping.
@@ -125,5 +122,5 @@ I explicate what this looks like in the context of interaction combinators in th
 
 String diagrams exist for a wide variety of applications these days, for [quantum computation](https://arxiv.org/pdf/2312.03653), [classical physics](https://arxiv.org/abs/2404.16140), [linear algebra](https://dl.acm.org/doi/pdf/10.1145/3290338), [logic](https://arxiv.org/pdf/2211.12629), and many other things. One can create a universal circuit for these domains by arithmetizing their respective string diagram formalisms. In this way, we may get notions of verifiable statements which go beyond merely executing a program.
 
-As part of a future project, I plan on describing a ZKVM for full first-order logic, where the circuits encode proofs of statements. An ordinary program trace can be formulated in such a setting, but we are free to make broader logical deductions. What we often want to express when defining a smart contract are propositions. Turning those propositions into program trace verifications works fine, but it's just one part of the design space which can be broadened.
+As part of a future project, I plan on describing a ZKVM for full first-order logic, where the circuits encode proofs of statements. An ordinary program trace can be formulated in such a setting, but we are free to make broader logical deductions. What we often want to express when defining a smart contract are propositions. Turning those propositions into program trace verifications works fine, but it's just one part of the design space which can be broadened. This idea is explored somewher it work such as the usage of Matching Logic in the [Universal Truth Framework](https://runtimeverification.com/mission-and-vision/pc-vision.pdf). It seems to me that using string diagrams, we have many options for formulating logics and algebras in a way that's more naturally suited for creating universal curcuits.
 
