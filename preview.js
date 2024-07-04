@@ -62,6 +62,11 @@ app.listen(httpPort, () => {
   console.log(
     httpConsole(`HTTP Server listening to http://localhost:${httpPort}`),
   );
+  watchFileForChanges();
+  console.log(
+    httpConsole(`Please access the following URL on Firefox: ${anomaUrl}`),
+  );
+  open(anomaUrl);
 });
 
 app.get("/events", (req, res) => {
@@ -116,6 +121,3 @@ const watchFileForChanges = () => {
 async function update(res) {
   sendUpdatedBlogInfo(res, await parseFileUpdates(filename));
 }
-
-watchFileForChanges();
-open(anomaUrl);
