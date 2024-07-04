@@ -4,22 +4,26 @@ import minimist from "minimist";
 import chalk from "chalk";
 import open from "open";
 import frontMatter from "front-matter";
+import cors from "cors";
 import express from "express";
 import { parsePostContent, createPostPreview } from "./.scripts/posts.js";
-
-import { WebSocketServer } from "ws";
 const args = minimist(process.argv.slice(2));
 const filename = args["f"] ?? args["_"][0];
 const mediaDir = path.dirname(filename);
-const wsPort = 8118;
 const httpPort = args["p"] ?? 8110;
-const httpUrl = `https://anoma.net/preview`;
+const httpUrl = `http://localhost:${httpPort}/`;
+const anomaUrl = "https://anoma.net/blog/preview";
 
 const replaceSrcPath = (content) => {
   return content.replace(/src="/gi, `src="${httpUrl}/`);
 };
 
+const httpConsole = (message) => chalk.blue(message);
+
+// Welcome!
 console.log(chalk.bgRed(chalk.white(" Anoma Blog - Preview ")));
+
+// Check if file argument was provided
 if (!filename) {
   console.log(
     chalk.bgRed(
@@ -29,6 +33,7 @@ if (!filename) {
   process.exit(1);
 }
 
+// Check if the provided filepath exists
 if (!fs.existsSync(filename)) {
   console.log(
     chalk.bgRed(
@@ -39,11 +44,19 @@ if (!fs.existsSync(filename)) {
   process.exit(1);
 }
 
-const wsConsole = (message) => chalk.magenta(message);
-const httpConsole = (message) => chalk.blue(message);
-
+// Starting HTTP server using express
 console.log(chalk.bgBlueBright(` Starting HTTP Server on port ${httpPort} `));
 const app = express();
+let sseResponse;
+
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "OPTIONS"],
+    allowedHeaders: ["Content-Type"],
+  }),
+);
+
 app.use(express.static(mediaDir));
 app.listen(httpPort, () => {
   console.log(
@@ -51,39 +64,41 @@ app.listen(httpPort, () => {
   );
 });
 
-console.log(
-  chalk.bgMagenta(chalk.black(` Starting Websocket Server on port ${wsPort} `)),
-);
-const previewContentWs = new WebSocketServer({ port: wsPort });
-const sendUpdatedBlogInfo = async (clients) => {
+app.get("/events", (req, res) => {
+  sseResponse = res;
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  update(res);
+  req.on("close", () => res.end());
+});
+
+const parseFileUpdates = async (filename) => {
   const updatedContents = fs.readFileSync(filename, "utf8");
   const { attributes } = frontMatter(updatedContents);
   const postInfo = createPostPreview(filename.replace(".md", ""), attributes);
   const postContent = replaceSrcPath(await parsePostContent(filename));
+  return { postInfo, postContent, attributes };
+};
+
+const sendUpdatedBlogInfo = async (
+  res,
+  { attributes, postContent, postInfo },
+) => {
   const msg = JSON.stringify({
     ...postInfo,
     image: httpUrl + "/" + attributes.image,
     content: postContent,
   });
-  clients.forEach((client) => {
-    console.log(
-      chalk.gray(
-        `[${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}]`,
-      ) + wsConsole(` Updating Preview`),
-    );
-    client.send(msg);
-  });
+  console.log(
+    chalk.gray(
+      `[${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}]`,
+    ) + httpConsole(` Updating Preview`),
+  );
+  res.write(`data: ${msg}\n\n`);
 };
 
-previewContentWs.on("connection", (socket) => {
-  if (socket) {
-    sendUpdatedBlogInfo([socket]);
-  }
-});
-
-previewContentWs.on("listening", () => {
-  console.log(wsConsole(`Webserver started at port ${wsPort}`));
-  console.log(wsConsole("Watching for changes on file: " + filename));
+const watchFileForChanges = () => {
   fs.watchFile(
     filename,
     {
@@ -91,11 +106,16 @@ previewContentWs.on("listening", () => {
       interval: 200,
     },
     () => {
-      console.log(chalk.gray("Detected changes for " + filename));
-      sendUpdatedBlogInfo(previewContentWs.clients);
+      if (sseResponse) {
+        update(sseResponse);
+      }
     },
   );
+};
 
-  const anomaUrl = "https://anoma.net/blog/preview";
-  open(anomaUrl);
-});
+async function update(res) {
+  sendUpdatedBlogInfo(res, await parseFileUpdates(filename));
+}
+
+watchFileForChanges();
+open(anomaUrl);
