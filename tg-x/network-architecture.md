@@ -21,11 +21,12 @@ This article serves as a brief introduction and high-level overview of the netwo
 The system is based on the *actor model*,
 where each node runs a set of processes, or actors.
 We call these *engines* in our design.
-Engines communicate with each other via message passing.
+Engines have state and communicate with each other via asynchronous message passing:.
+An engine may send and respond to messages,
+react to timer events, and spawn other engines.
 
 Each node has a cryptographic identity that uniquely identifies it in the network.
-A node consists of a collection of running engines
-that send and respond to messages.
+A node consists of a collection of running engines.
 Local engines communicate with each other directly,
 while they reach remote nodes via the Router and Transport engines.
 
@@ -37,6 +38,21 @@ later this can be extended with onion-routed, mix, mesh, and delay-tolerant netw
 The Router engine routes incoming and outgoing messages from and to local engines,
 based on the destination address of each message, which consists of a node and engine identity.
 
+<figure>
+
+```mermaid
+flowchart LR
+  T((Transport))
+  R(((Router)))
+  X((Engine_X))
+  Y((Engine_Y))
+
+  X & Y --- R --- T
+```
+
+<figcaption>A node with its engines.</figcaption>
+</figure>
+
 ## Communication patterns
 
 The network supports unicast, multicast, and anycast communication patterns.
@@ -45,7 +61,39 @@ The network supports unicast, multicast, and anycast communication patterns.
 - *Multicast*: few-to-many messages sent to a publish-subscribe topic and delivered to all subscribers.
 - *Anycast*: messages sent to any known member of a domain.
 
-## Network architecture
+<figure>
+
+```mermaid
+flowchart LR
+
+subgraph NA[Node_A]
+  AT((Transport_A))
+  AR(((Router_A)))
+  AX((Engine_AX))
+  AY((Engine_AY))
+
+  AX --> AR --> AT
+  AY -.- AR
+
+end
+
+AT --> BT
+
+subgraph NB[Node_B]
+  BT(((Transport_B)))
+  BR(((Router_B)))
+  BX((Engine_BX))
+  BY((Engine_BY))
+
+  BT --> BR --> BX
+  BY -.- BR
+end
+```
+
+<figcaption>Unicast communication: Engine AX sends a message to BX via the Router And Transport engines.</figcaption>
+</figure>
+
+## Network Architecture
 
 The network consists of nodes that may communicate with each other directly,
 and participate in any number of domains.
@@ -57,28 +105,65 @@ Mobile nodes of end-users may communicate directly on edge networks,
 and reach the core network via relays
 that store and forward messages for them.
 
-This allows reliable message delivery and basic location privacy for mobile nodes.
+This results in a two-tier network architecture,
+where relays provide reliable message delivery and basic location privacy for mobile nodes.
 Mobile nodes with higher location privacy requirements
 may use an onion-routed or mix network to connect to the core network.
 
+<figure>
+
+```mermaid
+flowchart LR
+
+subgraph Core
+  A((A))
+  B((B))
+  C((C))
+  D((D))
+  R1((R1))
+  R2((R2))
+  
+  A --- B & C --- D
+  C --- R1
+  D --- R2
+end
+
+subgraph Edge_A
+  K --- L --- M & N --- O
+end
+
+subgraph Edge_B
+  P --- Q & R --- S
+end
+
+R1 -.- L & P
+R2 -.- O & R
+```
+
+<figcaption>Two-tier network architecture with core & edge networks.</figcaption>
+</figure>
+
 ## Domains
 
-The network consists of sovereign domains that enable pluralistic interoperability.
-
+The network consists of sovereign domains.
 A domain is a sub-network with its own *cryptographic identity*.
 Domain creation is permissionless, it only requires a domain advertisement signed by the domain owner(s),
 which contains the domain configuration.
 Domain identity is based on a public key, and may use threshold cryptography.
 The domain configuration specifies the authentication mechanism used to join the domain,
 the protocols used in the domain, and the list of nodes that serve external requests.
+This enables *pluralistic interoperability*,
+i.e. domains may run different protocols internally,
+but able to respond to external requests nevertheless.
 
 The domain's *membership* is the list of nodes
 that are allowed to participate in the network protocols inside the domain.
 A domain may be instantiated as one or more overlay networks that may or may not be inter-connected,
-depending on the protocols run in the domain.
-This allows both single-instance domains,
+depending on the protocols used in the domain.
+This allows both single-instance domains with globally synchronized data structures,
 as well as [grassroots](https://arxiv.org/abs/2301.04391) domains
-that may have a number of instances in the core network and on various edge networks.
+that may have a number of instances in the core network and on various edge networks,
+and use mergeable data structures, such as [CRDTs](https://crdt.tech).
 
 The initial set of protocols that run in a domain consists of
 a membership protocol, a topic-based publish-subscribe protocol,
@@ -105,6 +190,37 @@ A block storage protocol allows limited persistence of data,
 which is integrated with the pub/sub protocol
 such that storage nodes willing to store a published message
 publish an acknowledgement that indicates how long they're willing to store the message.
+
+<figure>
+
+```mermaid
+flowchart LR
+
+subgraph DA[Domain_A]
+   A(((A)))
+   B(((B)))
+   C((C))
+   D((D))
+   E((E))
+   F((F))
+
+   A --- E & C
+   B --- C --- D
+   B --- F
+   C --- F
+   D --- E
+   F --- E
+end
+
+M((M))
+N((N))
+
+M -. JoinReq .-> A
+N -. ExtReq .-> B
+```
+
+<figcaption>A domain overlay with interlinked nodes and requests.</figcaption>
+</figure>
 
 ## Summary
 
