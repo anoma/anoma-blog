@@ -10,7 +10,9 @@ excerpt: This post will describe string diagrams and explain why they are a well
 
 By the end of this post, I want to convince the reader that there are better forms of syntax than abstract syntax trees; namely, graphical ones. I'll also touch on how this may influence better ZKVM designs.
 
-First, what's so bad about trees? Historically, most languages in mathematics have been constructed using abstract syntax trees, or ASTs. The very definition of a grammar in most computer science contexts assumes that any term of any language must be structured like a tree. Most of the time, this seems fine, but a century of hacks have had to be invented to compensate for the deficiencies of trees.
+First, *what's so bad about trees?* 
+
+Historically, most languages in mathematics have been constructed using abstract syntax trees, or ASTs. The very definition of a grammar in most computer science contexts assumes that any term of any language must be structured like a tree. Most of the time, this seems fine, but a century of hacks have had to be invented to compensate for the deficiencies of trees.
 
 I think the easiest place to see this is in the combinator calculus. Variables remain a persistant issue for theory, and much ink has been spilt trying to treat variables, or really, variable names, coherently. Issues related to scoping and shadowing formally complicate the syntactical aspects of mathematics which most simply take for granted. Among the earliest methods for managing them is to simply eliminate them. From this, we get the original combinator calculus invented by Skonfinkle. Conceptually similar systems were invented over the last century for similar reasons, such as [predicate functor logic](https://en.wikipedia.org/wiki/Predicate_functor_logic). These allow one to reason through symbol manipulation without needing named variables, but one must spend an inordinate effort dealing with a convoluted origami just to get separate ends of trees to communicate.
 
