@@ -39,11 +39,11 @@ That first rule deletes an arbitrary amount of information, $y$, and that second
 
 Enough complaining. What's the solution? Well, graphs, ya, but not just graphs. Consider what turning a tree into a graph implies.
 
-[component name=“anthony/tree-graph”]
+[component name="anthony/tree-graph"]
 
 If we had an expression like `b(x, y)`, we would create a node labeled `b` which connects to the graphs corresponding to `x` and `y`. The `b` node would also have an additional edge going toward the root of whatever expression it appears in. In the original expression, `x` and `y` are ordered, and are also clearly distinct from the root of the expression; not so in the graph representation. By just using an ordinary graph, we've lost essential structure. So we need a graph where each node orders its edges. When a structured graph has nodes with a specific number of edges with a fixed order, we call the edges of a node "ports". This also allows us to generalize tree grammars in a sensible way, buy restricting our graph to those built from nodes with specific ports of specific types.
 
-[component name=“anthony/tree-port-graph”]
+[component name="anthony/tree-port-graph"]
 
 This kind of graph is what I have in mind when I say "string diagram". It is in this sense that string diagrams may be considered "graphical" generalizations of "arborial" (tree-like) syntax.
 
@@ -74,7 +74,7 @@ This also doesn't recreate the naming problems. There are no names for the varia
 
 This also gets rid of unnecessary scoping.
 
-[component name=“anthony/tree-binder-graph”]
+[component name="anthony/tree-binder-graph"]
 
 Taking this seriously as a model of computation, we get the symmetric interaction combinators and its varients;
 
