@@ -3,7 +3,7 @@ title: The Unrealized Potential of String Diagrams for ZKVMs
 publish_date: ???
 category: compilers
 image: media/string_puppet.webp
-excerpt: Trees for formal syntax have miriad deficiencies which can be overcome by switich to string diagrams. How string diagrams fix trees also makes them well suited for arithmetization into universal cuircuits, which can be viewed as ZKVMs for domains that go beyond mere program execution.
+excerpt: Trees for formal syntax have myriad deficiencies which can be overcome by string diagrams. How string diagrams fix trees also makes them well suited for arithmetization into universal circuits, which can be viewed as ZKVMs for domains that go beyond mere program execution.
 ---
 
 ## Trees Considered Harmful
