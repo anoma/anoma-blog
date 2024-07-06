@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Tree Visualizer with Binders - Fixed V5</title>
+    <title>Interactive Tree Visualizer with Binders - Fixed V7</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.development.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.development.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
@@ -71,16 +71,19 @@
 
                 const parse = (tokens) => {
                     const nodes = [];
-                    const stack = [{ name: null, args: [], binders: [] }];
+                    const stack = [{ id: -1, name: 'root', args: [], binders: [] }];
+                    let id = 0;
 
                     for (let token of tokens) {
                         if (token === '(') {
-                            const newNode = { name: stack[stack.length - 1].args.pop(), args: [], binders: [] };
+                            const newNode = { id: id++, name: stack[stack.length - 1].args.pop(), args: [], binders: [] };
                             stack.push(newNode);
                         } else if (token === ')') {
-                            const node = stack.pop();
-                            nodes.push(node);
-                            stack[stack.length - 1].args.push(node);
+                            if (stack.length > 1) {
+                                const node = stack.pop();
+                                nodes.push(node);
+                                stack[stack.length - 1].args.push(node);
+                            }
                         } else if (token === '.') {
                             stack[stack.length - 1].binders = stack[stack.length - 1].args;
                             stack[stack.length - 1].args = [];
@@ -91,32 +94,43 @@
                         }
                     }
 
+                    while (stack.length > 1) {
+                            const node = stack.pop();
+                            nodes.push(node);
+                            stack[stack.length - 1].args.push(node);
+                    }
+
                     return nodes;
                 };
 
                 const processNodes = (nodes) => {
                     const binderNames = new Set(nodes.flatMap(node => node.binders));
                     let processedNodes = nodes.filter(node => !binderNames.has(node.name)).map(node => ({
+                        id: node.id,
                         name: node.name,
                         args: node.args,
                         binders: node.binders.map(binder => ({ name: binder, locs: [] })),
                         loc: null
                     }));
 
+                    let id = processedNodes.length;
+
                     // First pass: add all nodes and set locations
                     processedNodes.forEach((node) => {
                         node.args.forEach((arg, argIndex) => {
                             if (typeof arg === 'string' && !binderNames.has(arg)) {
-                                processedNodes.push({
+                                const newNode = {
+                                    id: id++,
                                     name: arg,
                                     args: [],
                                     binders: [],
-                                    loc: [node.name, argIndex + 1 + node.binders.length]
-                                });
+                                    loc: [node.id, argIndex + 1 + node.binders.length]
+                                };
+                                processedNodes.push(newNode);
                             } else if (typeof arg === 'object') {
-                                const childNode = processedNodes.find(n => n.name === arg.name);
+                                const childNode = processedNodes.find(n => n.id === arg.id);
                                 if (childNode) {
-                                    childNode.loc = [node.name, argIndex + 1 + node.binders.length];
+                                    childNode.loc = [node.id, argIndex + 1 + node.binders.length];
                                 }
                             }
                         });
@@ -129,7 +143,7 @@
                                 const binderNode = processedNodes.find(n => n.binders.some(b => b.name === arg));
                                 if (binderNode) {
                                     const binder = binderNode.binders.find(b => b.name === arg);
-                                    binder.locs.push([node.name, argIndex + 1 + node.binders.length]);
+                                    binder.locs.push([node.id, argIndex + 1 + node.binders.length]);
                                 }
                             }
                         });
@@ -145,14 +159,14 @@
 
                     processedNodes.forEach(node => {
                         nodes.push({
-                            id: node.name,
+                            id: node.id,
                             name: node.name,
                             childCount: node.args.length + node.binders.length
                         });
 
                         if (node.loc) {
                             links.push({
-                                source: node.name,
+                                source: node.id,
                                 target: node.loc[0],
                                 sourcePort: 0,
                                 targetPort: node.loc[1]
@@ -166,7 +180,7 @@
                                 nodes.push({ id: dupNodeId, name: '', isDup: true });
 
                                 links.push({
-                                    source: node.name,
+                                    source: node.id,
                                     target: dupNodeId,
                                     sourcePort: index + 1,
                                     targetPort: 0
@@ -182,7 +196,7 @@
                                 });
                             } else if (binder.locs.length === 1) {
                                 links.push({
-                                    source: node.name,
+                                    source: node.id,
                                     target: binder.locs[0][0],
                                     sourcePort: index + 1,
                                     targetPort: binder.locs[0][1]
@@ -194,6 +208,7 @@
                     return { nodes, links };
                 };
 
+
                 const tokens = tokenize(input);
                 const parsedNodes = parse(tokens);
                 const processedNodes = processNodes(parsedNodes);
@@ -202,9 +217,7 @@
 
             React.useEffect(() => {
                 const newGraphData = parseTree(inputText);
-                if (newGraphData) {
-                    setGraphData(newGraphData);
-                }
+                setGraphData(newGraphData);
             }, [inputText]);
 
             const nodeRadius = 20;
@@ -272,7 +285,7 @@
                             style={{ width: '100%', height: '70%', padding: '0.5rem', border: '1px solid #AB0000', borderRadius: '4px', marginBottom: '1rem', backgroundColor: '#3F3F3F', color: 'white' }}
                             value={inputText}
                             onChange={(e) => setInputText(e.target.value)}
-                            placeholder="Enter tree structure (e.g., apply(lam(x. f(x)), a))"
+                            placeholder="Enter tree structure (e.g., b(b(b(b(x)))))"
                         />
                         <div>
                             <h4 className="examples-text">Examples:</h4>
