@@ -1,11 +1,8 @@
----
-title: HyperNova by hand (Part 1)
-category: cryptography
-excerpt: The sumcheck protocol is like one of those magic tricks that, despite having been exposed to how it works, it still makes your mind do some acrobatics every time you see it applied.
-Just as important as knowing how the sumcheck protocol works, it is recognising when can it be used, that is, which problems can be turned into sumcheck problems, and why.
----
-
 ## Part 1: Sumcheck for matrix-vector products
+
+The sumcheck protocol is like one of those magic tricks that, despite having been exposed to how it works, it still makes your mind do some acrobatics every time you see it applied.
+
+Just as important as knowing how the sumcheck protocol works, it is recognising when can it be used, that is, which problems can be turned into sumcheck problems, and why.
 
 ### Transforming any check into a sumcheck 
 
