@@ -1,4 +1,6 @@
-## Part 1: Sumcheck for matrix-vector products
+# HyperNova by hand
+
+## Part 1: Sumcheck for CCS instances
 
 The sumcheck protocol is like one of those magic tricks that, despite having been exposed to how it works, it still makes your mind do some acrobatics every time you see it applied.
 
@@ -11,7 +13,7 @@ $\begin{align*}
 T &= \sum_{x \in \{0,1\}^\mu} f(x) \\ 
 &= \sum_{x_1 \in \{0,1\}} \sum_{x_2 \in \{0,1\}} ... \sum_{x_\mu \in \{0,1\}} f(x_1, x_2, ..., x_\mu)
 \end{align*}$
-After $l$ rounds, the protocol allows the verifier to check $f(r_1,...,r_\mu) = c$, for some random $r_i \in \mathbb{F}$, which with high probability implies the original equation.
+After $\mu$ rounds, the protocol allows the verifier to check $f(r_1,...,r_\mu) = c$, for some random $r_i \in \mathbb{F}$, which with high probability implies the original equation.
 
 Say we have a polynomial $f$ encoding a vector of evaluations $v = [v_1,..., v_{n}]$ such that for all $x_i$ in some subdomain $H$, $f(x_i) = v_i$. In our setting, a prover wants to convince a verifier that this is the case (i.e. $f(x_i) = 0, \forall x_i \in H$). This is known as a zero-check. 
 
@@ -45,7 +47,7 @@ So if $h(r) = 0$, this implies with high probability that $h = 0$, which implies
 $h(r) = 0 \overset{w.h.p}{\Longrightarrow} h = 0 \Longrightarrow h(Y) = 0, \forall Y \in B^\mu \Longrightarrow f(x) = 0, \forall x\in B^\mu$. 
 
 
-### Example: Fibonacci++
+## Example: Fibonacci++
 
 The following recurrence relation will help us illustrating the workings sumcheck protocol for matrix-vector products as is used in HyperNova.
 
@@ -82,7 +84,7 @@ We have a particular interest in having our rows and columns of size $2^m$ for s
 
 CCS (Customisable Constraint System) relations are a generalisation of R1CS relations and can be represented as follows:
 $\begin{equation}     \sum_{i=0}^{q-1} c_i \cdot \circ_{j \in S_i} M_j \cdot z = \mathbf{0} \end{equation}$
-where $z := (w, x, 1) \in \mathbb{F}^n$, $x \in \mathbb{F}^{l}$ being the private inputs and $w \in \mathbb{F}^{m - l - 1}$ the public inputs.
+where $z := (w, x, 1) \in \mathbb{F}^n$, $x \in \mathbb{F}^{l}$ being the public inputs and $w \in \mathbb{F}^{m - l - 1}$ the private inputs.
 
 $M_j \cdot z$ denotes matrix-vector multiplication. $\circ$ denotes the Hadamard product between vectors, and 0 is an m-sized vector with entries equal to the the additive identity in $\mathbb{F}$.
 
@@ -124,12 +126,12 @@ $\widetilde{z}((Y_1, Y_2, Y_3)) := \sum_{y_1 \in \{0, 1 \}}\sum_{y_2 \in \{0, 1 
 The CCS relation we want to check, $1 \cdot (M_1 \cdot z \circ M_2 \cdot z) + (-1) \cdot (M_3 \cdot z) = \mathbf{0}$,
 is thus turned into 
 $\begin{align*}
-G((X_1, X_2)) := & 1 \cdot (\sum_{y \in \{0, 1 \}^3} \widetilde{M_1}((X_1, X_2), y) \cdot \widetilde{z}(y) \circ \sum_{y \in \{0, 1 \}^{s'}} \widetilde{M_1}((X_1, X_2), y) \cdot \widetilde{z}(y)) \\  + & (-1) \cdot (\sum_{y \in \{0, 1 \}^{s'}} \widetilde{M_3}((X_1, X_2), y) \cdot \widetilde{z}(y)) = \mathbf{0}
+G((X_1, X_2)) := & 1 \cdot (\sum_{y \in \{0, 1 \}^3} \widetilde{M_1}((X_1, X_2), y) \cdot \widetilde{z}(y) \cdot \sum_{y \in \{0, 1 \}^{3}} \widetilde{M_1}((X_1, X_2), y) \cdot \widetilde{z}(y)) \\  + & (-1) \cdot (\sum_{y \in \{0, 1 \}^{3}} \widetilde{M_3}((X_1, X_2), y) \cdot \widetilde{z}(y)) = \mathbf{0}
 \end{align*}$
 
 The prover wants to prove that $G((x_1, x_2)) = 0$ for all $x_1, x_2 \in \{0,1\}$ using the sumcheck protocol. That is $G((0,0))= G((0,1))= G((1,0))= G((1,1))=0$.
 
-As expected, we transform the multivariate polynomial $G$ into a multilinear polynomial $h$: 
+As expected, we extend the multivariate polynomial $G : \{0,1\} \times \{0,1\} \to \mathbb{F}$ of degree 2 into a multilinear polynomial $h : \mathbb{F} \times \mathbb{F} \to \mathbb{F}$: 
 $\begin{align}
 h((X_1, X_2)) &:= \sum_{x_1 \in \{0,1\}}\sum_{x_2 \in \{0,1\}} G((x_1, x_2)) \cdot \widetilde{eq}((X_1, X_2), (x_1, x_2)) \\
 &=  G((0, 0)) \cdot \widetilde{eq}((X_1, X_2), (0, 0)) \\
@@ -142,7 +144,7 @@ Note that there would be no harm in doing such transformation if $G$ were alread
 
 As we did earlier, now $h(X)$ is a multilinear extension that encodes the $4$ evaluations ($\{(0,0), (0,1), (1,0), (1,1) \}$) of $G$ into its coefficients, so it is uniquely determined by $4$ evaluations (i.e. a polynomial of $n$ coefficients is of degree $n - 1$, thus uniquely defined by $n$ evaluations). Since $\forall X_1, X_2 \in \{0,1\}, h((X_1, X_2)) = G((X_1, X_2)) = 0$, then $h$ must necessarily be the zero polynomial $h = 0$.
 
-By the Schwartz-Zippel lemma, we can evaluate $h$ at a random point $r \in \mathbb{F}^2$ to prove that $h$ is indeed the zero polynomial. That is, $h((r_1, r_2)) := \sum_{x_1 \in \{0,1\}}\sum_{x_2 \in \{0,1\}}  G((x_1, x_2)) \cdot \widetilde{eq}((r_1, r_2), (x_1, x_2))$ must be equal to zero.
+By the Schwartz-Zippel lemma, we can evaluate $h$ at a random point $r \in \mathbb{F}^2$ to prove that $h$ is indeed the zero polynomial. That is, $h((r_1, r_2)) := \sum_{x_1 \in \{0,1\}}\sum_{x_2 \in \{0,1\}}  G((x_1, x_2)) \cdot \widetilde{eq}((r_1, r_2), (x_1, x_2))$ must be equal to zero:
 $\begin{align}
 h((r_1, r_2)) &:= G((0, 0)) \cdot \widetilde{eq}((r_1, r_2), (0, 0)) \\
 &+ G((0, 1)) \cdot \widetilde{eq}((r_1, r_2), (0, 1)) \\
@@ -151,14 +153,40 @@ h((r_1, r_2)) &:= G((0, 0)) \cdot \widetilde{eq}((r_1, r_2), (0, 0)) \\
 &= 0
 \end{align}$
 
-Note that $\widetilde{eq}(r, x) = ((1-r_1)(1-x_1) + r_1 x_1) \cdot ((1-r_2)(1-x_2) + r_2 x_2)$ may not zero if $r_1, r_2 \notin \{0,1\}$.
+Note that $\widetilde{eq}(r, x) = ((1-r_1)(1-x_1) + r_1 x_1) \cdot ((1-r_2)(1-x_2) + r_2 x_2)$ may not be zero if $r_1, r_2 \notin \{0,1\}$.
 
 
-Let's prove that $h(X_1, X_2) = 0$ now using the sumcheck protocol.
+Let's prove that $h(X_1, X_2) = 0$ for all $X_1, X_2 \in \{0,1\}$ now using the sumcheck protocol.
 
-- **Round 1**: The prover $P$ sends the verifier $V$ a univariate polynomial $s_1(X_1)$ (i.e. just 3 coefficients: $(0,0,0)$) claiming that he sends $s_1(X_1)$ is equal to $h_1(X_1) = 0$ for some $h_1(X_1) := \sum_{x_2 \in \{0,1\}} G(X_1, x_2)$. That is, we keep the first variable unbound while summing up the values over the boolean hypercube. The verifier first checks that $s_1(0) + s_1(1)$ matches the expected result, i.e. $s_1(0) + s_1(1) = 0$ and checks $s_1 = h_1$ by checking that $h_1$ and $s_1$ agree at a random point $r_1$ (Schwartz-Zippel lemma). The verifier can compute directly $s_1(r_1)$ but doesn't know what $h_1$ is, so the check $s_1 = h_1$ must be done recursively.
-- **Round 2 (final)**: The new claim is that $s_1(r_1) := \sum_{x_2 \in \{0,1\}} G(r_1, x_2)$, so $P$ sends $V$ a univariate $s_2(X_2)$ (again by sending $(0,0,0)$) which he claims to be equal to  $h_2(X_2) := G(r_1, X_2)$. The verifier first checks that $s_1(r_1)$ is indeed $s_2(0) + s_2(1)$ and sends a random challenge $r_2$ to check that $s_2(r_2) = h_2(r_2)$. There is no more need for recursion, since the verifier can evaluate $G(r_1, r_2)$ with a single oracle query to $G$.
+The problem statement becomes $\sum_{x_1 \in \{0,1\}} \sum_{x_2 \in \{0,1\}} h((x_1, x_2)) = 0$.
+
+- **Round 1**: The prover $P$ sends the verifier $V$ a univariate polynomial $s_1(X_1)$ claiming to be equal to $h_1(X_1) := \sum_{x_2 \in \{0,1\}} h(X_1, x_2)$. That is, we keep the first variable unbound while summing up the values over the boolean hypercube. The verifier first checks that $s_1(0) + s_1(1)$ matches the expected result, i.e. $s_1(0) + s_1(1) = 0$ and checks $s_1 = h_1$ by checking that $h_1$ and $s_1$ agree at a random point $r_1$ (Schwartz-Zippel lemma). The verifier can compute directly $s_1(r_1)$ but doesn't know what $h_1$ is, so the check $s_1 = h_1$ must be done recursively.
+- **Round 2 (final)**: The new claim is that $s_1(r_1) := \sum_{x_2 \in \{0,1\}} h(r_1, x_2)$, so $P$ sends $V$ a univariate $s_2(X_2)$ (again by sending $(0,0,0)$) which he claims to be equal to  $h_2(X_2) := h(r_1, X_2)$. The verifier first checks that $s_1(r_1)$ is indeed $s_2(0) + s_2(1)$ and sends a random challenge $r_2$ to check that $s_2(r_2) = h_2(r_2)$. There is no more need for recursion, since the verifier can now evaluate $h(r_1, r_2)$. But how? (Spoiler: another sumcheck!)
 
 
+The verifier has access to the CCS instance $S_{CCS}$, and in particular to $M_1, M_2, M_3$ and $z$ thus he could compute by himself:
+$\begin{align*}
+G((r_1, r_2)) = & 1 \cdot (\sum_{y \in \{0, 1 \}^3} \widetilde{M_1}((r_1, r_2),  y) \cdot \widetilde{z}(y) \cdot \sum_{y \in \{0, 1 \}^{3}} \widetilde{M_1}((r_1, r_2), y) \cdot \widetilde{z}(y)) \\  + & (-1) \cdot (\sum_{y \in \{0, 1 \}^{3}} \widetilde{M_3}((r_1, r_2), y) \cdot \widetilde{z}(y)) 
+\end{align*}$.
+
+However, computing $\sum_{y \in \{0, 1 \}^3} \widetilde{M_i}((r_1, r_2), y) \cdot \widetilde{z}(y)$ for $i \in \{1,2,3\}$ is more work than the verifier wishes to do. So he engages in a sumcheck protocol with the prover. In particular, the prover computes 
+$\begin{align}
+T_i &= \sum_{y \in \{0, 1 \}^3} \widetilde{M_i}((r_1, r_2), y) \cdot \widetilde{z}(y) \\
+&= \sum_{y_1 \in \{0, 1 \}} \sum_{y_2 \in \{0, 1 \}} \sum_{y_3 \in \{0, 1 \}} \widetilde{M_i}((r_1, r_2), (y_1, y_2, y_3)) \cdot \widetilde{z}((y_1, y_2, y_3)) \\
+\end{align}$.
+
+- **Round 1**: The prover $P$ sends the verifier $V$ a univariate polynomial $s_1(Y_1)$ to be equal to $h_1(Y_1) := \sum_{y_2 \in \{0,1\}}\sum_{y_3 \in \{0,1\}} \widetilde{M_i}((r_1, r_2), (Y_1, y_2, y_3)) \cdot \widetilde{z}((Y_1, y_2, y_3))$. That is, we keep the first variable unbound while summing up the values over the boolean hypercube. The verifier first checks that $s_1(0) + s_1(1)$ matches the expected result, i.e. $s_1(0) + s_1(1) = T_i$ and checks $s_1 = h_1$ by checking that $h_1$ and $s_1$ agree at a random point $r'_1$ (Schwartz-Zippel lemma). The verifier can compute directly $s_1(r'_1)$ but doesn't know what $h_1$ is, so the check $s_1 = h_1$ must be done recursively.
+- **Round 2**: The new claim is that $s_1(r'_1) := \sum_{y_2 \in \{0,1\}}\sum_{y_3 \in \{0,1\}} \widetilde{M_i}((r_1, r_2), (r'_1, y_2, y_3)) \cdot \widetilde{z}((r'_1, y_2, y_3))$, so $P$ sends $V$ a univariate $s_2(Y_2)$ claimed to be equal to  $h_2(Y_2) := \sum_{y_3 \in \{0,1\}}\widetilde{M_i}((r_1, r_2), (r'_1, Y_2, y_3)) \cdot \widetilde{z}((r'_1, y_2, y_3))$. The verifier first checks that $s_1(r'_1)$ is indeed $s_2(0) + s_2(1)$ and sends a random challenge $r'_2$ to check that $s_2(r'_2) = h_2(r'_2)$. 
+- **Round 3**: Finally, we check that $s_1(r'_2) := \sum_{y_3 \in \{0,1\}} \widetilde{M_i}((r_1, r_2), (r'_1, r'_2, y_3)) \cdot \widetilde{z}((r'_1, r'_2, y_3))$. $P$ sends $V$ a univariate $s_3(Y_3)$ claimed to be equal to  $h_3(Y_3) := \widetilde{M_i}((r_1, r_2), (r'_1, r'_2, Y_3)) \cdot \widetilde{z}((r'_1, r'_2, Y_3))$. The verifier first checks that $s_2(r'_2)$ is indeed $s_3(0) + s_3(1)$ and using a random value $r'_3$, he can compute on his own $h_3(r'_3)$ and check that $s_3(r'_3)$ is indeed equal to $h_3(r'_3)$, thus $s_3 = h_3$.
+
+After engaging in a sumcheck for each 
+$T_i = \sum_{y \in \{0, 1 \}^3} \widetilde{M_i}((r_1, r_2), y) \cdot \widetilde{z}(y)$, the verifier then can compute 
+$\begin{align*}
+G((r_1, r_2)) = & 1 \cdot (\sum_{y \in \{0, 1 \}^3} \widetilde{M_1}((r_1, r_2),  y) \cdot \widetilde{z}(y) \cdot \sum_{y \in \{0, 1 \}^{3}} \widetilde{M_1}((r_1, r_2), y) \cdot \widetilde{z}(y)) \\  + & (-1) \cdot (\sum_{y \in \{0, 1 \}^{3}} \widetilde{M_3}((r_1, r_2), y) \cdot \widetilde{z}(y))
+\end{align*}$
+
+In fact, the verifier can batch the three sumchecks for $T_i$ above into a single sumcheck instead. 
+
+Thus he is able to check the original sumcheck, that $\sum_{x_1 \in \{0,1\}} \sum_{x_2 \in \{0,1\}} h((x_1, x_2)) = 0$.
 
 [1]: HyperNova paper
