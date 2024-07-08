@@ -187,6 +187,11 @@ G((r_1, r_2)) = & 1 \cdot (\sum_{y \in \{0, 1 \}^3} \widetilde{M_1}((r_1, r_2), 
 
 In fact, the verifier can batch the three sumchecks for $T_i$ above into a single sumcheck instead. 
 
-Thus he is able to check the original sumcheck, that $\sum_{x_1 \in \{0,1\}} \sum_{x_2 \in \{0,1\}} h((x_1, x_2)) = 0$.
+Thus he is able to check the original sumcheck, that $\begin{align}
+0 &= \sum_{x_1 \in \{0,1\}} \sum_{x_2 \in \{0,1\}} h((x_1, x_2)) \\
+&= \sum_{x'_1 \in \{0,1\}}\sum_{x'_2 \in \{0,1\}}  G((x'_1, x'_2)) \cdot \widetilde{eq}((x_1, x_2), (x'_1, x'_2))
+\end{align}$,
+
+which in turn verifies that the CCS relation encoding our fibonacci iteration holds.
 
 [1]: HyperNova paper
