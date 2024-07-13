@@ -18,7 +18,7 @@ This article serves as a brief introduction and high-level overview of the netwo
 
 ## Node architecture
 
-The system is based on the *actor model*,
+The system is inspired by the *actor model*,
 where each node runs a set of processes, or actors.
 We call these *engines* in our design.
 Engines have state and communicate with each other via asynchronous message passing:.
@@ -58,8 +58,8 @@ flowchart LR
 The network supports unicast, multicast, and anycast communication patterns.
 
 - *Unicast*: direct messages between two engines.
-- *Multicast*: few-to-many messages sent to a publish-subscribe topic and delivered to all subscribers.
-- *Anycast*: messages sent to any known member of a domain.
+- *Multicast*: few-to-many messages sent to a publish-subscribe topic by authorized publishers and delivered to all subscribers.
+- *Anycast*: messages sent to any known member of a domain (see the next sections).
 
 <figure>
 
@@ -80,7 +80,7 @@ end
 AT --> BT
 
 subgraph NB[Node_B]
-  BT(((Transport_B)))
+  BT((Transport_B))
   BR(((Router_B)))
   BX((Engine_BX))
   BY((Engine_BY))
@@ -95,20 +95,23 @@ end
 
 ## Network Architecture
 
-The network consists of nodes that may communicate with each other directly,
-and participate in any number of domains.
+The network consists of nodes that may communicate with each other either directly or via relays,
+and may participate in any number of domains.
 
-Nodes in the core network are directly reachable via transport address(es)
+Each node has cryptographic identity and a number of transport address(es)
 specified in their signed node advertisements.
 
-Mobile nodes of end-users may communicate directly on edge networks,
-and reach the core network via relays
+The core network has low churn where nodes have publicly reachable IP addresses,
+while mobile nodes of end-users participate in high-churn edge networks,
+where they communicate directly with other mobile nodes,
+and do not advertise their public IP address,
+instead reach the core network via relays
 that store and forward messages for them.
 
 This results in a two-tier network architecture,
 where relays provide reliable message delivery and basic location privacy for mobile nodes.
 Mobile nodes with higher location privacy requirements
-may use an onion-routed or mix network to connect to the core network.
+may use an onion-routed or mix networks to connect to the core network.
 
 <figure>
 
@@ -122,17 +125,28 @@ subgraph Core
   D((D))
   R1((R1))
   R2((R2))
-  
+
   A --- B & C --- D
   C --- R1
   D --- R2
 end
 
 subgraph Edge_A
+  K((K))
+  L((L))
+  M((M))
+  N((N))
+  O((O))
+
   K --- L --- M & N --- O
 end
 
 subgraph Edge_B
+  P((P))
+  Q((Q))
+  R((R))
+  S((S))
+
   P --- Q & R --- S
 end
 
@@ -140,7 +154,7 @@ R1 -.- L & P
 R2 -.- O & R
 ```
 
-<figcaption>Two-tier network architecture with core & edge networks.</figcaption>
+<figcaption>Two-tier network architecture with core & edge networks, connected via relays R1 & R2.</figcaption>
 </figure>
 
 ## Domains
@@ -219,16 +233,34 @@ M -. JoinReq .-> A
 N -. ExtReq .-> B
 ```
 
-<figcaption>A domain overlay with interlinked nodes and requests.</figcaption>
+<figcaption>A domain overlay where nodes A & B handle external requests.</figcaption>
 </figure>
 
 ## Summary
 
-The network architecture consists of
+The network architecture of Anoma consists of
 nodes in a two-tier network architecture,
 sovereign domains that allow pluralistic interoperability,
-messaging based on the actor model with unicast, multicast, and anycast communication pattern,
+messaging inspired by the actor model with unicast, multicast, and anycast communication pattern,
 and a modular transport system with various transport protocols
 with varying levels of reliability, latency, and privacy guarantees.
 
 More details will be published in the upcoming report at [Anoma Research Topics](https://art.anoma.net).
+
+<style>
+.language-mermaid {
+  width: 100%;
+}
+
+.language-mermaid .cluster > rect {
+  stroke: #caa !important;
+  fill: #eee !important;
+  fill-opacity: 50%;
+}
+
+.language-mermaid .node > :first-child,
+.language-mermaid .node > :first-child * {
+  stroke: #c33 !important;
+  fill: #fee !important;
+}
+</style>
