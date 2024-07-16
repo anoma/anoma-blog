@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <!-- Left side of the rule -->
+  <g transform="translate(50, 20)">
+    <!-- Outgoing edges -->
+    <line x1="35" y1="0" x2="42" y2="40" stroke="#AB0000" />
+    <line x1="65" y1="0" x2="58" y2="40" stroke="#AB0000" />
+    <!-- Ellipsis -->
+    <text x="50" y="25" text-anchor="middle" font-size="20" fill="#AB0000">...</text>
+    <!-- n node -->
+    <circle cx="50" cy="55" r="15" fill="white" stroke="#AB0000" />
+    <text x="50" y="60" text-anchor="middle" font-size="16" fill="#AB0000">n</text>
+    <!-- Connecting line -->
+    <line x1="50" y1="70" x2="50" y2="105" stroke="#AB0000" />
+    <!-- d node -->
+    <circle cx="50" cy="120" r="15" fill="white" stroke="#AB0000" />
+    <text x="50" y="125" text-anchor="middle" font-size="16" fill="#AB0000">d</text>
+    <!-- Bottom edges, now angled -->
+    <line x1="42" y1="132" x2="35" y2="165" stroke="#AB0000" />
+    <line x1="58" y1="132" x2="65" y2="165" stroke="#AB0000" />
+  </g>
+  
+  <!-- Rewrite arrow -->
+  <line x1="170" y1="100" x2="220" y2="100" stroke="#AB0000" stroke-width="2" />
+  <polygon points="220,100 210,95 210,105" fill="#AB0000" />
+  
+  <!-- Right side of the rule -->
+  <g transform="translate(250, 20)">
+    <!-- Outgoing edges -->
+    <line x1="30" y1="0" x2="30" y2="40" stroke="#AB0000" />
+    <line x1="70" y1="0" x2="70" y2="40" stroke="#AB0000" />
+    <!-- Ellipsis -->
+    <text x="50" y="25" text-anchor="middle" font-size="20" fill="#AB0000">...</text>
+    <!-- d nodes -->
+    <circle cx="30" cy="55" r="15" fill="white" stroke="#AB0000" />
+    <text x="30" y="60" text-anchor="middle" font-size="16" fill="#AB0000">d</text>
+    <circle cx="70" cy="55" r="15" fill="white" stroke="#AB0000" />
+    <text x="70" y="60" text-anchor="middle" font-size="16" fill="#AB0000">d</text>
+    <!-- n nodes -->
+    <circle cx="30" cy="135" r="15" fill="white" stroke="#AB0000" />
+    <text x="30" y="140" text-anchor="middle" font-size="16" fill="#AB0000">n</text>
+    <circle cx="70" cy="135" r="15" fill="white" stroke="#AB0000" />
+    <text x="70" y="140" text-anchor="middle" font-size="16" fill="#AB0000">n</text>
+    <!-- Connecting lines from n to d nodes (crossed) -->
+    <line x1="25" y1="120" x2="25" y2="70" stroke="#AB0000" />
+    <line x1="35" y1="120" x2="65" y2="70" stroke="#AB0000" />
+    <line x1="65" y1="120" x2="35" y2="70" stroke="#AB0000" />
+    <line x1="75" y1="120" x2="75" y2="70" stroke="#AB0000" />
+    <!-- Crossing Ellipses -->
+    <text x="65" y="95" text-anchor="middle" font-size="20" fill="#AB0000">...</text>
+    <text x="35" y="95" text-anchor="middle" font-size="20" fill="#AB0000">...</text>
+    <!-- Bottom edges -->
+    <line x1="30" y1="150" x2="30" y2="165" stroke="#AB0000" />
+    <line x1="70" y1="150" x2="70" y2="165" stroke="#AB0000" />
+  </g>
+</svg>
