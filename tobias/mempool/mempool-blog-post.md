@@ -104,7 +104,7 @@ we will see that this does not bring anything to the table
 and thus basically can ignore the leaves and 
 focus on the proper pools.-->
 
-###  Delay approximations 
+###  Delay approximations and why we should care
 Finding consensus among operators of a pool—be it
 about the next batch of intents, transaction bundles, or
 other types of order conglomerates—will take 
@@ -122,21 +122,29 @@ For a first estimate,
 we assume operators to be spread out evenly on a circle,
 such that sibling leaves of the tree
 are neighbours on the circle.[^4]
-As estimate for each communication within a proper pool,
+As estimate for communication latency within a proper pool,
 we take the distance to the operator that is furthest away.
-So, the communication cost in pools is proportional 
+Throwing in some symbols, the communication _cost_ in pools is proportional 
 to $(\gamma^h)^2 = (\gamma^{2h}) = (\gamma^2)^h$
 and thus,
 submitting orders to a pool of double the size
 incurs $\gamma^2$ the communication cost,
-which is detrimental to welfare.
-Concerning latency,<!--
+which is detrimental to welfare;
+in contrast, 
+_latency_ in a pool of height $h$ is proportional to $\gamma^h$,
+as this is the order of magnitude of the latency (in the nice average case),
+but due to discounted utility, we have a factor that is exponential in the latency,
+namely $\beta^{(\gamma^h)}$.
+The latter is actually the _»raison d'être«_ of why we are doing this.
+
+Looking once more at latency:<!--
 one way or another, e.g., having three/four children per level
---> we aim to have at least one batch auction in a pool
-before unfilled/unmatched orders are forwarded to the parent-pool—early
-enough so that it can be considered in the next auction in the parent-pool.[^5]
+--> we aim to have at least one batch auction in a pool of height $h$
+before unfilled/unmatched orders are forwarded to the parent-pool at height $h+1$—early
+enough for the intent to be considered in the next auction in the parent-pool.[^5]
 Thus, although $\gamma = 2$ is nice for illustrations, 
-we may actually rather need $\gamma =3$ in the end.
+we may actually rather need $\gamma =3$ in the end,
+but little does it matter for the big picture.
 
 <!-- TODO: explain how the number come about -->
 
@@ -155,9 +163,9 @@ $$\beta^t \sum_{O \subseteq B_n} u(O) \times p(O)$$
   - probability this is a possible match times
   - probability the match is found by the respective pool / the algorithm
 -->
-where $B_n$ is the $n$-th batch,
+where $B_n$ is the $n$-th intent batch,
 $O \subseteq B_n$ is a sub-batch of orders,
-and $\hat p(O)$ is the probability that $O$ is the (maximally useful) set of filled orders.
+and $\hat p(O)$ is the probability that $O$ is the (maximally useful) set of filled orders.[^9]
 
 For a concrete simple example, <!-- starting with one -->
 we take the case of pairwise swaps,
@@ -166,7 +174,7 @@ each swap comes with a bid for having it filled.
 The matching algorithm is almost trivial
 **(and the reader can figure it out themselves $\mathtt{;-)}$).**
 Note that this will match each matching pair
-**(and will favour smaller over bigger cycles if they are found [`😅` oof needed an example with simpler matching strategy!!!])** 
+**(and will favour smaller over bigger cycles if they are found [`😅` ooof! We need an example with a much simpler matching strategy!!!])** 
 
 Now, let us turn to the **obviously oversimplified and potentially _wrong_ calculations.**
 Assume that we have a discount factor $\beta = 0.5$
@@ -210,12 +218,13 @@ and we need a life time in practice.
 _filling rate_ is possibly intricate to calculate. 
 
 - Note that we assume that the pools are operated by the same parties,
-somewhat reminiscent of sub-nets in Avalanche.
+somewhat reminiscent of sub-nets in Avalanche; 
+the relation to Eigenlayer needs to be checked.
 In principle, 
 one may have a heterogeneous setup,
 but then slashing and the like will be more complicated.
 
-**[This part is hurting most]**
+**[This part may go away and be replaced by actual content]**
 
 <!-- 
 so, if half the matches have to wait 
@@ -230,36 +239,40 @@ TODO: general calculation / code
 
 ## Conclusion: the obvious non-sensical, the scale-free, ...?
 
-Note that despite the many open questions marks concerning how hierarchical mempools
-could be a better solution for solving than global pools,
-we can identify two different reasons for operator pool trees are inadequate (cf. distributed solving). 
+In short,
+hierarchical mempools
+_could_ be a better solution for solving than global pools.
+However, that was not the point of this post.
+We now identify two different reasons that can make operator pool trees "useless" (cf. distributed solving). 
 
-With the picture of the hierarchical operator pools in the circle in mind,
+① With the picture of the hierarchical operator pools in the circle in mind,
 if matching orders occur on opposing sides of the circle only,
 then clearly, there is no point in having a hierarchical mempool,
 because matching orders more often than not will travel all the way to the root pool.
 In this case, 
 we only need the global pool. There is no tree.
 
-On the other extreme,
+② On the other extreme,
 if matching orders always occur in proximity to each other,
-we only need a number of very local pools;
-at the very extreme, we have the occurrence of all order flow in a single place, 
+we only need sufficiently many "discrete" local pools, 
+i.e., without connections between the pools whatsoever!
+At the very extreme, we have the occurrence of all order flow in a single place, 
 e.g., due to proximity to the server of a pre-existing CEX.
-There is no point in having a tree, 
-but we may have one to say that the leaves do not need the support of the tree.
+There is simply no point in the tree-structure.
 
-
-
-We have seen that
-the last category of order flow is the uniform and homogeneous spread of all possible orders:
-we need more math, find some examples, or better both.
-Sources of inspiration could be the large body of work on self-similarity, scale-freeness, 
-and queing theory.<!-- well, this ← sentence just random last bit ... -->
-Finaly,
-although we just have some crude back of the envelope calculations,
+We may now to set out to characterize in more detail a "good" category of order flow.
+It seems that if order flow is uniformly spread,
+we may have enough orders filled for each level of the hierarchy to have a _»raison d'être«._
+However, 
+we need to dig deeper, find good examples, and do some serious math.
+In passing, 
+I want to mention the large body of work on self-similarity, scale-freeness, 
+and queuing theory.<!-- well, this ← sentence just random last bit ... -->
+Finally,
+although we just only scribbled some quick back of the envelope calculations,
 we have identified a setting where hierarchical operator pools _may_ have a theoretical advantage. 
-Time will tell.
+Time will tell if Anoma's intent machine could benefit from operator pool trees
+or similar hierarchical organization of intent pools.
 
 <!-- ---- -->
 
@@ -285,6 +298,9 @@ Time will tell.
 	Moreover, whenever a new swap request arises in this way, 
 	the probability to arrive a given validator is $\gamma^{-h}$,
 	i.e., order flow is the "same" for all operators.
+
+[^9]: Here, we are considering a greedy strategy. 
+	If there is no greedy strategy, we are beyond the scope of the blog post.
 
 <!-- footnotes end -->
 
