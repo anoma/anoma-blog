@@ -23,6 +23,9 @@ using Plots
 # ╔═╡ 7b14ea82-2945-46d4-a2a9-38ac4eb8cfb7
 using Distributions
 
+# ╔═╡ 0048b529-d19e-49be-b7ad-4e4d9f99642e
+using Random
+
 # ╔═╡ c99fea3c-4a87-11ef-0cf6-8736f39ca37a
 a = 1 + 1 * 100
 
@@ -71,12 +74,69 @@ samples = Dict(
 # ╔═╡ 4c1d718c-ec3f-4313-83b6-1a0cc4c87c66
 Plots.bar(samples, size = (600,300))
 
+# ╔═╡ 1bc85bef-bd70-4745-abc5-7b98ac9d3214
+anArray = map( x -> round(x, digits=2), Random.rand( anExampleDistribution, 5000))
+
+# ╔═╡ e62279e9-c9b0-4872-bbb7-6fe1258bede2
+Plots.bar(reverse(sort(anArray)), size = (600,300))
+
+# ╔═╡ 82245b9d-d1f9-46a5-acc3-28b928fa193d
+md"""
+## now for the real deal: 
+
+work towards the actual example ...
+"""
+
+# ╔═╡ 40da450f-2d7e-4f7a-9ece-3431aae7fd9e
+iterations = 5000
+
+# ╔═╡ 1c6441b2-a8ac-404c-a8b4-cc4f262c8556
+theVariability = 100
+
+# ╔═╡ 2c96e985-d658-4388-81c6-04c3b229d1b6
+theDepth=4
+
+# ╔═╡ b16d90b5-25b7-4c96-a9d6-d38b8387508f
+locations = 2^theDepth
+
+# ╔═╡ 24978d97-dafb-4e4c-a0fc-e8448e3286ad
+
+
+# ╔═╡ 2b0d2288-9a6e-49b3-a64e-073ed7cf39ad
+theWaitingTimes = map( x -> round(x, digits=2), Random.rand(MersenneTwister(1337), anExampleDistribution, iterations ))
+
+# ╔═╡ 46df301e-3989-4b54-a605-56462878d3d9
+theIntents = Random.rand(MersenneTwister(1337), -theVariability:theVariability, iterations)
+
+# ╔═╡ eb1e5848-0255-48d8-a92d-9ed4938a1cc4
+theLocations = Random.rand(MersenneTwister(1337), 1:locations, iterations)
+
+# ╔═╡ 9e6ddb2b-375e-42c4-bcfb-bc3a50082d89
+compined = zip(theWaitingTimes,theIntents,theLocations)
+
+# ╔═╡ eb501e85-0f13-4761-a8b1-e491bae6f9a8
+typeof(compined)
+
+# ╔═╡ 5759f819-ccde-4767-a50e-e534bf5c27dc
+begin
+	tmp = 0
+	for (a,b,c) in compined
+		println("$a, $b, $c"); 
+		tmp += 1;
+		if tmp > 5 break; else end
+	end
+end
+
+# ╔═╡ 35f19514-6a03-4b09-a7ef-23fb8ee1ca37
+
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
 Distributions = "~0.25.109"
@@ -90,7 +150,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.4"
 manifest_format = "2.0"
-project_hash = "9d3d309067d6ddee045a821f128ad9f883ad5a2a"
+project_hash = "1b0f4b10005a5a3cb656cf4c37f123e293ee0076"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -1326,5 +1386,21 @@ version = "1.4.1+1"
 # ╠═8f29183a-2e36-4479-a688-5036e2cda17e
 # ╠═34aca0e1-2ea7-4c1c-b189-55ed035ffe7b
 # ╠═4c1d718c-ec3f-4313-83b6-1a0cc4c87c66
+# ╠═0048b529-d19e-49be-b7ad-4e4d9f99642e
+# ╠═1bc85bef-bd70-4745-abc5-7b98ac9d3214
+# ╠═e62279e9-c9b0-4872-bbb7-6fe1258bede2
+# ╟─82245b9d-d1f9-46a5-acc3-28b928fa193d
+# ╠═40da450f-2d7e-4f7a-9ece-3431aae7fd9e
+# ╠═1c6441b2-a8ac-404c-a8b4-cc4f262c8556
+# ╠═2c96e985-d658-4388-81c6-04c3b229d1b6
+# ╠═b16d90b5-25b7-4c96-a9d6-d38b8387508f
+# ╠═24978d97-dafb-4e4c-a0fc-e8448e3286ad
+# ╠═2b0d2288-9a6e-49b3-a64e-073ed7cf39ad
+# ╠═46df301e-3989-4b54-a605-56462878d3d9
+# ╠═eb1e5848-0255-48d8-a92d-9ed4938a1cc4
+# ╠═9e6ddb2b-375e-42c4-bcfb-bc3a50082d89
+# ╠═eb501e85-0f13-4761-a8b1-e491bae6f9a8
+# ╠═5759f819-ccde-4767-a50e-e534bf5c27dc
+# ╠═35f19514-6a03-4b09-a7ef-23fb8ee1ca37
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
