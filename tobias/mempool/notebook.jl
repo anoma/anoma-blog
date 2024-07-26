@@ -26,6 +26,9 @@ using Distributions
 # ╔═╡ 0048b529-d19e-49be-b7ad-4e4d9f99642e
 using Random
 
+# ╔═╡ 2958a4ba-a72c-4340-9b80-23fcb2892bce
+using DataStructures
+
 # ╔═╡ c99fea3c-4a87-11ef-0cf6-8736f39ca37a
 a = 1 + 1 * 100
 
@@ -84,14 +87,36 @@ Plots.bar(reverse(sort(anArray)), size = (600,300))
 md"""
 ## now for the real deal: 
 
-work towards the actual example ...
+For our example,
+we have take order flow of a fixed _time,_
+but with fluctuations in the exact intent flow.
+We shll use [grouped bar plots](https://docs.juliaplots.org/dev/generated/statsplots/#Grouped-Bar-plots) to illustrate the relative and total utility realized (over time)
+
+Thus, we fix the number of cycles,
+say of the top level pool.
+The value for how many cycles can be chosen in the input field in the next cell.
 """
 
-# ╔═╡ 40da450f-2d7e-4f7a-9ece-3431aae7fd9e
-iterations = 5000
+# ╔═╡ f8fa0039-074c-490e-9c76-9f2c68b593a0
+@bind cycles NumberField(1:10000)
 
-# ╔═╡ 1c6441b2-a8ac-404c-a8b4-cc4f262c8556
-theVariability = 100
+# ╔═╡ 0194c984-25b6-402d-9cab-16c18b70b4bc
+println("cycles is $cycles")
+
+# ╔═╡ 00008e29-fd32-4995-8a08-f99a78325905
+md"""
+_Variability_
+
+Probably the most important parameter for the example
+is _variability:_ 
+it correlates strongly with how likely intents are matched.
+"""
+
+# ╔═╡ 8f728722-4749-41be-880f-e43afa80d9b5
+@bind theVariability NumberField(1:100)
+
+# ╔═╡ 3087847d-a284-4271-bfc6-eb8b66df1f5a
+println("variability is $theVariability")
 
 # ╔═╡ 2c96e985-d658-4388-81c6-04c3b229d1b6
 theDepth=4
@@ -99,46 +124,70 @@ theDepth=4
 # ╔═╡ b16d90b5-25b7-4c96-a9d6-d38b8387508f
 locations = 2^theDepth
 
-# ╔═╡ 24978d97-dafb-4e4c-a0fc-e8448e3286ad
-
-
-# ╔═╡ 2b0d2288-9a6e-49b3-a64e-073ed7cf39ad
-theWaitingTimes = map( x -> round(x, digits=2), Random.rand(MersenneTwister(1337), anExampleDistribution, iterations ))
+# ╔═╡ 246b6743-c618-421a-a1b9-74b37da7bc21
+discount = .7
 
 # ╔═╡ 46df301e-3989-4b54-a605-56462878d3d9
-theIntents = Random.rand(MersenneTwister(1337), -theVariability:theVariability, iterations)
+theIntents = Random.rand(MersenneTwister(1337), -theVariability:theVariability, cycles)
 
-# ╔═╡ eb1e5848-0255-48d8-a92d-9ed4938a1cc4
-theLocations = Random.rand(MersenneTwister(1337), 1:locations, iterations)
+# ╔═╡ 0b7cdb22-7d6d-415d-bb50-06ac8540d0fa
+theIntentsList = MutableLinkedList{Tuple{Float64, Int64, Int64}}()
 
-# ╔═╡ 9e6ddb2b-375e-42c4-bcfb-bc3a50082d89
-compined = zip(theWaitingTimes,theIntents,theLocations)
 
-# ╔═╡ eb501e85-0f13-4761-a8b1-e491bae6f9a8
-typeof(compined)
+# ╔═╡ 4e55202e-ac4b-493d-9ec0-6dfc5b79452b
+theRNG = MersenneTwister(1337)
 
-# ╔═╡ 5759f819-ccde-4767-a50e-e534bf5c27dc
+# ╔═╡ c40acdc8-a39c-4486-8887-af47ceaf7d84
 begin
-	tmp = 0
-	for (a,b,c) in compined
-		println("$a, $b, $c"); 
-		tmp += 1;
-		if tmp > 5 break; else end
+	local localsum = Random.rand(anExampleDistribution)
+	while (localsum < cycles)
+		push!(theIntentsList, 
+				(localsum,
+					Random.rand(-theVariability:theVariability), Random.rand(1:locations)
+				)
+		)
+		localsum+=Random.rand(anExampleDistribution);
 	end
+	local theLength = length(theIntentsList)
+	local thePeek = (getindex(theIntentsList, div(theLength, 2)),
+					getindex(theIntentsList, div(theLength, 2)+1),
+					getindex(theIntentsList, div(theLength, 2)+2))
+	
+	println("done $theLength $thePeek");
 end
 
-# ╔═╡ 35f19514-6a03-4b09-a7ef-23fb8ee1ca37
+# ╔═╡ 3f7e9337-a0fb-47fa-9b74-5ae004cd9038
+function utility(t, base)
+	base * (discount^t)
+end
 
+# ╔═╡ c51ec554-f835-4fae-a739-f10d2f3f9243
+pools = Dict(
+	x => Dict()
+	for x in 1:(2*locations -1)
+)
+
+# ╔═╡ 5af91362-c224-41f5-9fa0-f5b7254b547a
+aDict = Dict("a" => 2)
+
+
+# ╔═╡ 93aef2c2-25de-4332-9f3e-3d9f45304d19
+aDict["b"] = 3
+
+# ╔═╡ d558ba68-9e3d-45f1-b705-2516c6064edb
+println("$aDict")
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
+DataStructures = "~0.18.20"
 Distributions = "~0.25.109"
 Plots = "~1.40.5"
 PlutoUI = "~0.7.59"
@@ -150,7 +199,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.4"
 manifest_format = "2.0"
-project_hash = "1b0f4b10005a5a3cb656cf4c37f123e293ee0076"
+project_hash = "3a51f1ab69564dd49679d45bcd4caf8eba26cb1a"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -1389,18 +1438,24 @@ version = "1.4.1+1"
 # ╠═0048b529-d19e-49be-b7ad-4e4d9f99642e
 # ╠═1bc85bef-bd70-4745-abc5-7b98ac9d3214
 # ╠═e62279e9-c9b0-4872-bbb7-6fe1258bede2
-# ╟─82245b9d-d1f9-46a5-acc3-28b928fa193d
-# ╠═40da450f-2d7e-4f7a-9ece-3431aae7fd9e
-# ╠═1c6441b2-a8ac-404c-a8b4-cc4f262c8556
+# ╠═2958a4ba-a72c-4340-9b80-23fcb2892bce
+# ╠═82245b9d-d1f9-46a5-acc3-28b928fa193d
+# ╠═f8fa0039-074c-490e-9c76-9f2c68b593a0
+# ╠═0194c984-25b6-402d-9cab-16c18b70b4bc
+# ╟─00008e29-fd32-4995-8a08-f99a78325905
+# ╟─8f728722-4749-41be-880f-e43afa80d9b5
+# ╟─3087847d-a284-4271-bfc6-eb8b66df1f5a
 # ╠═2c96e985-d658-4388-81c6-04c3b229d1b6
 # ╠═b16d90b5-25b7-4c96-a9d6-d38b8387508f
-# ╠═24978d97-dafb-4e4c-a0fc-e8448e3286ad
-# ╠═2b0d2288-9a6e-49b3-a64e-073ed7cf39ad
+# ╠═246b6743-c618-421a-a1b9-74b37da7bc21
 # ╠═46df301e-3989-4b54-a605-56462878d3d9
-# ╠═eb1e5848-0255-48d8-a92d-9ed4938a1cc4
-# ╠═9e6ddb2b-375e-42c4-bcfb-bc3a50082d89
-# ╠═eb501e85-0f13-4761-a8b1-e491bae6f9a8
-# ╠═5759f819-ccde-4767-a50e-e534bf5c27dc
-# ╠═35f19514-6a03-4b09-a7ef-23fb8ee1ca37
+# ╠═0b7cdb22-7d6d-415d-bb50-06ac8540d0fa
+# ╠═4e55202e-ac4b-493d-9ec0-6dfc5b79452b
+# ╠═c40acdc8-a39c-4486-8887-af47ceaf7d84
+# ╠═3f7e9337-a0fb-47fa-9b74-5ae004cd9038
+# ╠═c51ec554-f835-4fae-a739-f10d2f3f9243
+# ╠═5af91362-c224-41f5-9fa0-f5b7254b547a
+# ╠═93aef2c2-25de-4332-9f3e-3d9f45304d19
+# ╠═d558ba68-9e3d-45f1-b705-2516c6064edb
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
