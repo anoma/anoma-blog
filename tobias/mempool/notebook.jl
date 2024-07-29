@@ -177,7 +177,7 @@ timeWindow = cycles*locations
 
 # ╔═╡ c40acdc8-a39c-4486-8887-af47ceaf7d84
 begin
-	# initialize local sum of waiting times for new intents (the sum of a single summand, viz the waiting time for the first intent)
+	# initialize local sum of waiting times for new intents (the sum of a single summand, viz. the waiting time for the first intent)
 	local localsum = Random.rand(anExampleDistribution)
 	# while we are still in the time window
 	while (localsum < timeWindow)
@@ -273,12 +273,10 @@ end
 (1:10)[5]
 
 # ╔═╡ 05ebc19a-da0e-44bc-ab2c-7a4427c56df9
-function solve(divisor, discount)
+function solve(divisor)
 	#check proper inputs
-	@assert mod(theVariability,divisor) == 0 
+	@assert mod(theVariability, divisor) == 0 
 		"Improper divisor for variability!"
-	@assert 0 < discount && discount < 1 
- 		"Improper discount factor!"
 	# define and initialize variables
 	#
 	# the variability for this one needs to be adapted
@@ -309,40 +307,50 @@ function solve(divisor, discount)
 		# take in new intents at the leaf pools (yes, that happens for every tick)
 		while (theIntentslist[idx])[1] < tick
 			# for all next intents with time < tick
-			let (time, ressource, location) = theIntentslist[idx]
+			let (time, resource, location) = theIntentslist[idx]
 				# put in the pool
 				push!(contents[location], (time,ressource,location))
 				# update balance
-				balance[location][ressource] += 1
+				balance[location][resource] += 1
 			end
 			idx += 1
 		end
-				# continue here
-		#     - update the balance of the pool accordingly
-		# - update pools and balances, which involves
-        #   - forwarding old contents to higher pools (except for the global pool) and update balances in all layers but the lowest
+		# now, we go top down (breadth first, to be precise) through all pools
 		for depth in 0:theDepth
-			# should we do solving, using the *current* balances?
+			# should we do solving, using the *current* contents/balances?
 			if mod(tick, 2^(theDepth-depth)) == 0
 				# go through pools at this depth
 				local first = 2^depth
 				local last = firstPool + 2^depth -1
 				@assert (last == 2^(depth+1)-1) "or I cannot calculate"
 				for pool in first:last
-					# - forwarding old contents to higher pools
+					# for every pool on this level
+					for j in 1:length(contents[pool])
+						# for every index, take one off
+						local thisIntent = popfirst!(contents[pool])
+						local (_, resource, _) = thisIntent
+						if balance[pool][-resource] > 0
+							balance[pool][-resource] += -1
+							# TODO check for undefined
+							solution[thisIntent] = time
+						else
+							if depth == 0
+								push!(contents[pool], thisIntent)
+							else
+								balance[pool][resource] += -1
+								balance[div(pool,2)][resource] += 1
+								push!(contents[div(pool,2)], thisIntent)
+							end
+						end
+					 end
+					@assert (isempty(contents[pool])) "Pool should be empty now!"
 				end
 			else
-				# nothing
+				# nothing to do, it is not solving time yet
 			end
 		end
-    	#   - add new order flow to leaf layer / at the bottom and calculate balances
-  		# - calculate solutions for the tick
-        # - this may involve several layers of the hierarchy and always the leaf layer
-        # - for each pool
-        # - go through the pools again and handle each intent in the pool and
-        #  - either remove and add to the solutions dictionary and adapt the balances
-        #   - do nothing (propagation will happen)
 	end
+	return solution
 end
 
 # ╔═╡ 5af91362-c224-41f5-9fa0-f5b7254b547a
