@@ -14,9 +14,6 @@ macro bind(def, element)
     end
 end
 
-# ╔═╡ 8e3663b3-3459-4e5a-9982-86fceebb98e8
-using PlutoUI
-
 # ╔═╡ 4b1f67b3-f1f7-412f-883f-9fb38ed18251
 using Plots
 
@@ -35,11 +32,21 @@ a = 1 + 1 * 100
 # ╔═╡ 69240598-25fa-41e5-ad47-a831533d9f8a
 b = 1 / 100
 
+# ╔═╡ 8e3663b3-3459-4e5a-9982-86fceebb98e8
+md"""
+using PlutoUI
+"""
+
 # ╔═╡ 1d878428-07a5-430a-b810-5671b4bc3962
 isvowel(c) = c ∈ "aeiou"
 
 # ╔═╡ 3d917d85-d175-4e10-8071-03fdf5969fe2
+md"""
 @bind text TextField()
+"""
+
+# ╔═╡ b8ec877f-c1ba-42ce-918d-cb05b5b75a3a
+text = "abcd"
 
 # ╔═╡ 302189d2-a0b3-4e3b-967a-e7222f9c53d4
 md"""
@@ -85,7 +92,18 @@ Plots.bar(reverse(sort(anArray)), size = (600,300))
 
 # ╔═╡ 82245b9d-d1f9-46a5-acc3-28b928fa193d
 md"""
-## now for the real deal: 
+## Getting some numbers
+
+
+### Rough plan
+
+- The main goal is to compute average discounted utilities after every global pool solving, i.e., after each "cycle" of the global batch auction, and copute averages over time using a [grouped bar plots](https://docs.juliaplots.org/dev/generated/statsplots/#Grouped-Bar-plots), but only after finding interesting parameters
+- for finding interesting parameters, we make [3d plots](https://discourse.julialang.org/t/plotting-a-3d-surface/17143/2) for a small number of depths,
+like depth three to five and the 3d plots in the x-y plane, we run through
+  - discount factor (probably best for the time dimension, if we need it), e.g., .5 to .9
+  - variability, e.g., 5:15
+
+If for none of these parameters we get utitlity gains realtive to global solving only, we are a little bit in a pickle ... 
 
 For our example,
 we have take order flow of a fixed _time,_
@@ -98,7 +116,12 @@ The value for how many cycles can be chosen in the input field in the next cell.
 """
 
 # ╔═╡ f8fa0039-074c-490e-9c76-9f2c68b593a0
+md"""
 @bind cycles NumberField(1:10000)
+"""
+
+# ╔═╡ b65740fe-b170-4565-9860-bc80bd1d8ff7
+cycles = 5000
 
 # ╔═╡ 0194c984-25b6-402d-9cab-16c18b70b4bc
 println("cycles is $cycles")
@@ -113,7 +136,15 @@ it correlates strongly with how likely intents are matched.
 """
 
 # ╔═╡ 8f728722-4749-41be-880f-e43afa80d9b5
+md"""
+not a chosen parameter right now
+```
 @bind theVariability NumberField(1:100)
+```
+"""
+
+# ╔═╡ b1e569ef-437c-4629-8b65-25be8fbbb0f8
+theVariability = 10
 
 # ╔═╡ 3087847d-a284-4271-bfc6-eb8b66df1f5a
 println("variability is $theVariability")
@@ -152,7 +183,6 @@ begin
 	local thePeek = (getindex(theIntentsList, div(theLength, 2)),
 					getindex(theIntentsList, div(theLength, 2)+1),
 					getindex(theIntentsList, div(theLength, 2)+2))
-	
 	println("done $theLength $thePeek");
 end
 
@@ -166,6 +196,45 @@ pools = Dict(
 	x => Dict()
 	for x in 1:(2*locations -1)
 )
+
+# ╔═╡ ae227674-476f-4582-a48a-98c3ee56c8bd
+md"""
+### Algorithm for solution calculation
+
+We want to calculate _solutions,_ which essentially annotate the list of flows with a solving time. So, we fabricate a dictionary that maps each intent to its solving time. This will also make it easy to calculate the utilities.
+
+#### Variables
+
+- the pool _contents:_ a dictionary from pool numbers to lists of intents (initially empty)
+- the _solutions:_ a dictionary from intents to solving time (initially empty)
+- the (current) _balances:_ a dictionary from pool numbers to the "current" balances (initially all zero) -- could also be a pair of arrays; we not the "supply" and "demand" for a specific resource kind, where supply is positive and demand is negative
+
+#### High-level description of the algorithm
+
+- a _tick_ is the time the lowest level pools take for solving
+- for each tick, we do the following
+  - update pools and balances, which involves
+    - forwarding old contents to higher pools (except for the global pool) and update balances in all layers but the lowest
+    - add new order flow to leaf layer / at the bottom and calculate balances
+  - calculate solutions for the tick
+    - this may involve several layers of the hierarchy and always the leaf layer
+    - for each pool
+      - go through the pools again and handle each intent in the pool and
+        - either remove and add to the solutions dictionary and adapt the balances
+        - do nothing (propagation will happen)
+
+The main result are the solutions, which give for each time stamped intent the time when it is solved.  
+"""
+
+# ╔═╡ 05ebc19a-da0e-44bc-ab2c-7a4427c56df9
+begin
+	local now = 0
+	for tick in 1:cycles*locations
+		for height in 1:theDepth
+			print("")
+		end
+	end
+end
 
 # ╔═╡ 5af91362-c224-41f5-9fa0-f5b7254b547a
 aDict = Dict("a" => 2)
@@ -183,14 +252,12 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
-PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
 DataStructures = "~0.18.20"
 Distributions = "~0.25.109"
 Plots = "~1.40.5"
-PlutoUI = "~0.7.59"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -199,13 +266,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.4"
 manifest_format = "2.0"
-project_hash = "3a51f1ab69564dd49679d45bcd4caf8eba26cb1a"
-
-[[deps.AbstractPlutoDingetjes]]
-deps = ["Pkg"]
-git-tree-sha1 = "6e1d2a35f2f90a4bc7c2ed98079b2ba09c35b83a"
-uuid = "6e696c72-6542-2067-7265-42206c756150"
-version = "1.3.2"
+project_hash = "e79f895952502ed707396320936d8da411803009"
 
 [[deps.AliasTables]]
 deps = ["PtrArrays", "Random"]
@@ -493,24 +554,6 @@ git-tree-sha1 = "f218fe3736ddf977e0e772bc9a586b2383da2685"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.23"
 
-[[deps.Hyperscript]]
-deps = ["Test"]
-git-tree-sha1 = "179267cfa5e712760cd43dcae385d7ea90cc25a4"
-uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
-version = "0.0.5"
-
-[[deps.HypertextLiteral]]
-deps = ["Tricks"]
-git-tree-sha1 = "7134810b1afce04bbc1045ca1985fbe81ce17653"
-uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
-version = "0.9.5"
-
-[[deps.IOCapture]]
-deps = ["Logging", "Random"]
-git-tree-sha1 = "b6d6bfdd7ce25b0f9b2f6b3dd56b2673a66c8770"
-uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
-version = "0.2.5"
-
 [[deps.InteractiveUtils]]
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
@@ -691,11 +734,6 @@ git-tree-sha1 = "c1dd6d7978c12545b4179fb6153b9250c96b0075"
 uuid = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 version = "1.0.3"
 
-[[deps.MIMEs]]
-git-tree-sha1 = "65f28ad4b594aebe22157d6fac869786a255b7eb"
-uuid = "6c6e2e6c-3030-632d-7369-2d6c69616d65"
-version = "0.1.4"
-
 [[deps.MacroTools]]
 deps = ["Markdown", "Random"]
 git-tree-sha1 = "2fa9ee3e63fd3a4f7a9a4f4744a52f4856de82df"
@@ -854,12 +892,6 @@ version = "1.40.5"
     IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
     ImageInTerminal = "d8c32880-2388-543b-8c61-d9f865259254"
     Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
-
-[[deps.PlutoUI]]
-deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
-git-tree-sha1 = "ab55ee1510ad2af0ff674dbcced5e94921f867a9"
-uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
-version = "0.7.59"
 
 [[deps.PrecompileTools]]
 deps = ["Preferences"]
@@ -1079,11 +1111,6 @@ weakdeps = ["Random", "Test"]
 
     [deps.TranscodingStreams.extensions]
     TestExt = ["Test", "Random"]
-
-[[deps.Tricks]]
-git-tree-sha1 = "eae1bb484cd63b36999ee58be2de6c178105112f"
-uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
-version = "0.1.8"
 
 [[deps.URIs]]
 git-tree-sha1 = "67db6cc7b3821e19ebe75791a9dd19c9b1188f2b"
@@ -1431,6 +1458,7 @@ version = "1.4.1+1"
 # ╠═cf0e9710-c521-4972-91c4-d2beffae9406
 # ╠═76607a3f-d866-4e4b-882e-2a926d3ffb17
 # ╠═3d917d85-d175-4e10-8071-03fdf5969fe2
+# ╠═b8ec877f-c1ba-42ce-918d-cb05b5b75a3a
 # ╠═7b14ea82-2945-46d4-a2a9-38ac4eb8cfb7
 # ╠═8f29183a-2e36-4479-a688-5036e2cda17e
 # ╠═34aca0e1-2ea7-4c1c-b189-55ed035ffe7b
@@ -1439,12 +1467,14 @@ version = "1.4.1+1"
 # ╠═1bc85bef-bd70-4745-abc5-7b98ac9d3214
 # ╠═e62279e9-c9b0-4872-bbb7-6fe1258bede2
 # ╠═2958a4ba-a72c-4340-9b80-23fcb2892bce
-# ╠═82245b9d-d1f9-46a5-acc3-28b928fa193d
+# ╟─82245b9d-d1f9-46a5-acc3-28b928fa193d
 # ╠═f8fa0039-074c-490e-9c76-9f2c68b593a0
+# ╠═b65740fe-b170-4565-9860-bc80bd1d8ff7
 # ╠═0194c984-25b6-402d-9cab-16c18b70b4bc
-# ╟─00008e29-fd32-4995-8a08-f99a78325905
-# ╟─8f728722-4749-41be-880f-e43afa80d9b5
-# ╟─3087847d-a284-4271-bfc6-eb8b66df1f5a
+# ╠═00008e29-fd32-4995-8a08-f99a78325905
+# ╠═8f728722-4749-41be-880f-e43afa80d9b5
+# ╠═b1e569ef-437c-4629-8b65-25be8fbbb0f8
+# ╠═3087847d-a284-4271-bfc6-eb8b66df1f5a
 # ╠═2c96e985-d658-4388-81c6-04c3b229d1b6
 # ╠═b16d90b5-25b7-4c96-a9d6-d38b8387508f
 # ╠═246b6743-c618-421a-a1b9-74b37da7bc21
@@ -1454,6 +1484,8 @@ version = "1.4.1+1"
 # ╠═c40acdc8-a39c-4486-8887-af47ceaf7d84
 # ╠═3f7e9337-a0fb-47fa-9b74-5ae004cd9038
 # ╠═c51ec554-f835-4fae-a739-f10d2f3f9243
+# ╠═ae227674-476f-4582-a48a-98c3ee56c8bd
+# ╠═05ebc19a-da0e-44bc-ab2c-7a4427c56df9
 # ╠═5af91362-c224-41f5-9fa0-f5b7254b547a
 # ╠═93aef2c2-25de-4332-9f3e-3d9f45304d19
 # ╠═d558ba68-9e3d-45f1-b705-2516c6064edb
