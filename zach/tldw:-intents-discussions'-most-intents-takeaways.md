@@ -1,7 +1,7 @@
 ---
 title: TL;DW: Intents Discussions' Most Intents Takeaways
 category: community
-co_authors: zach
+co_authors:
 publish_date: 
 image: media/image6.jpg
 imageAlt: 
