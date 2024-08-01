@@ -2,7 +2,7 @@
 title: TL;DW: Intents Discussions' Most Intents Takeaways
 category: community
 co_authors:
-publish_date: 
+publish_date: 2024-08-01T16:15:00.000Z
 image: media/image6.jpg
 imageAlt: 
 imageCaption: 
