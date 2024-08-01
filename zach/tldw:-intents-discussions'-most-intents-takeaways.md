@@ -13,10 +13,7 @@ excerpt: Missed Intents Discussions but don’t have seven hours to watch all th
 
 Intents Discussions was an event held before EthCC 2024 in Brussels, bringing together founders, builders, researchers, and decentralization maximalists in discussions on the state of architectures, protocols, ecosystems, and the role intents will play.
 
-<figure>
-  <img src="media/image9.png" />
-  <figcaption></figcaption>
-</figure>
+![](media/image9.png)
 
 Things kicked off with an [introduction by Anoma cofounder Awa Sun Yin](https://www.youtube.com/watch?v=MLuPpHlyJ0g), who provided insight into the ultimate [vision of Anoma](https://anoma.net/vision-paper.pdf) from her perspective. Why do we need Anoma, she asked? To help move our economic infrastructures from ‘Game A’ (the current imbalanced, PvP, intermediated, fragile macro-economic system) to ‘Game B’, characterized by:
 
@@ -30,10 +27,7 @@ Things kicked off with an [introduction by Anoma cofounder Awa Sun Yin](https://
 
 She explained, “We realized that the technologies we’re building with decentralized protocols actually have the capabilities to replace or at least provide a really viable alternative to existing systems that have this imbalance between people and the system.”
 
-<figure>
-  <img src="media/image5.png" />
-  <figcaption></figcaption>
-</figure>
+![](media/image5.png)
 
 # P2P layers, intent gossip networks, and the edge of distributed systems
 
@@ -51,10 +45,7 @@ Ultimately, Tobias emphasized, the question of what makes a good P2P network doe
 
 This brings us back to the idea, Sam said, of a network of networks, which is what Anoma is. In Anoma, Tobias points out, actors can participate in P2P in one of several domains depending on which specific role they’re playing (validator, intent gossiping, solving, counterparty discovery etc). Other solutions include having a single network with multiple mempool lanes, which is being done in CometBFT, Marius mentioned. 
 
-<figure>
-  <img src="media/image11.png" />
-  <figcaption></figcaption>
-</figure>
+![](media/image11.png)
 
 ## Incentive design and altruism 
 So what about incentives? Gossip is expensive, and people are paying for blockspace but not P2P. How do you determine incentives, and who’s going to pay for it? 
@@ -76,10 +67,7 @@ The inspiration for Anoma came from the state of the space in 2020, when progres
 
 > *“As a founder, if you’re building something like this, you have to do a lot more leg work to explain it to people. When we started talking about intents in 2020 everybody was like, ‘what are intents?’ Fundamentally as a founder you have the choice, do you build within existing paradigms? You’re not going to push the space forward much but it’s much easier to explain to people. Or do you try to tackle the really hard problems that have a lot of upside if you solve them?”*
 
-<figure>
-  <img src="media/image4.png" />
-  <figcaption></figcaption>
-</figure>
+![](media/image4.png)
 
 Diving into Anoma’s information flow control, Adrian pointed out: 
 
@@ -94,10 +82,7 @@ What are those limits? First and foremost: the slow speed and high cost of zk pr
 
 Louis referenced recent breakthroughs by Starkware in developing a prover that is 100x faster than the company’s previous generation technology and 10-20x faster than anything available on the market. The theoretical limit and holy grail of proving, he explained, is being able to do proving within the time necessary for producing a single block, which would unlock the maximum potential for this technology. Another solution mentioned was the ability to spread computation over multiple chains working in parallel (sharding/multithreading).
 
-<figure>
-  <img src="media/image7.png" />
-  <figcaption></figcaption>
-</figure>
+![](media/image7.png)
 
 Panelists also discussed the limitations, trade-offs, and applicability of the various cryptographic technologies: zero-knowledge (ZK), multi-party computation (MPC), fully homomorphic encryption (FHE), and trusted execution environments (TEEs). While some preferred one over the other, domain-specificity and multi-pronged approaches were also emphasized as necessary given that the research and application of these technologies to blockchain protocols is still early and ongoing.
 
@@ -106,10 +91,7 @@ Yulia and others also provided a look into how Anoma uses cryptography, particul
 # Intent-centric applications
 So how do we bring intents to the application level? The [next panel](https://www.youtube.com/watch?v=RnHZVGPMc7Y) dove into existing and potential applications that benefit from intents with [Rob Sorrow](https://x.com/rsarrow) ([Volt](https://x.com/voltcapital)), [Zaki Manian](https://x.com/zmanian) ([Sommelier](https://x.com/sommfinance)), [Praneeth Srikanti](https://x.com/bees_neeth) ([Ethereal](https://x.com/etherealvc)), [Amin B](https://x.com/AminB_CH) ([SwissDAO](https://x.com/swissDAO)), and [Mike Ruzic](https://x.com/thespacecatjr) ([Heliax](https://heliax.dev/)).
 
-<figure>
-  <img src="media/image2.png" />
-  <figcaption></figcaption>
-</figure>
+![](media/image2.png)
 
 There was broad consensus that intents and intent-centric architectures have much to offer the application space, particularly when it comes to usability and the defragmentation of intent liquidity that exists with the current landscape of application-specific intents. Intents were discussed as a solution to several practical problems in protocol design, not the least being the centralizing tendencies of current solutions for matching intents. 
 
@@ -131,10 +113,7 @@ The session closed with a recognition that building intent-centric apps will go 
 # Globalists vs sovereignists
 Next, [Illia Polosukhin](https://x.com/ilblackdragon) ([NEAR](https://x.com/NEARProtocol)), [Ethan Buchman](https://x.com/buchmanster) ([Cosmos](https://x.com/cosmos)), Adrian Brink (Anoma), [Emmanuel Awosika](https://x.com/eawosikaa) (2077 Collective) dove into the importance of and interplay between globalism and sovereignty or localism, comparing the concepts both in terms of real world governance systems and blockchain/protocol architectures. 
 
-<figure>
-  <img src="media/image8.png" />
-  <figcaption></figcaption>
-</figure>
+![](media/image8.png)
 
 Some panelists had a slight tendency to favor one over the other, but there was also consensus that global solutions are useful for some things and local solutions for others. As Ethan explained:
 
@@ -167,7 +146,6 @@ Next, [Apriori](https://x.com/apriori0x) ([Heliax](https://heliax.dev/)) dove in
 ## Defining solvers
 The panel kicked off with an attempt to define precisely what a solver is, with Apriori suggesting a definition from the recent [*An Analysis of Intents-based Markets*](https://arxiv.org/abs/2403.02525): ”Solvers are agents who compete to satisfy user orders which may include complicated user specified conditions.” 
 
-
 Nathan suggested another: “Self interested actors who are financially incentivized and rewarded for their participation in optimization markets” and “someone who’s paid to take risk”. For Markus, the concept of competition isn’t necessary, suggesting that solvers are merely a mechanism you trust to outsource an optimization to. Vishwa countered by saying that, in his view, for solvers to exist in a marketplace it should be competitive; with markets as a mechanism designed around selfish actors. Nathan emphasized the ‘selfish actor’ part, since selfishness is one of the most reliable forces, while Katia pointed out the importance of solvers providing added value to the user.
 
 ## Are solvers and MEV searchers the same thing?
@@ -175,10 +153,7 @@ For Nathan, yes essentially. Markus countered by saying that, in the short term 
 
 For Vishwa, solving “flips the polarity that we’ve seen with MEV searchers: historically it's PvP, me against the user. Here it flips that polarity and I become a worker for the user.”
 
-<figure>
-  <img src="media/image10.png" />
-  <figcaption></figcaption>
-</figure>
+![](media/image10.png)
 
 ## What makes a good solver? 
 For Nathan, you need a passion for execution over impact: you’re not exactly changing the world but you play an important role in a highly competitive environment. The ability to continually optimize, increasing efficiency and profit, was also emphasized. 
@@ -195,10 +170,7 @@ Reiterating the importance of specialization and commoditization of roles, Marku
 # Campside chat with Vitalik Buterin, Christopher Goes, & Mike Ippolito
 The headline chat for the day featured [Anoma cofounder Christopher Goes in conversation with Vitalik Buterin, moderated by Blockworks’s Mike Ippolito](https://youtu.be/uUwVal5gmbA). They covered a lot of ground, from lessons learned as protocol designers to the relationship between L1s, applications, and end users, and how that relates to the evolution of protocols. 
 
-<figure>
-  <img src="media/image3.png" />
-  <figcaption></figcaption>
-</figure>
+![](media/image3.png)
 
 Vitalik ran through his thought process, lessons learned, and design decisions when building Ethereum, which he summed up as attempting to avoid the mistakes of Bitcoin. Among the learnings and surprises, he admitted, was that “NFTs were a big surprise, I totally did not expect NFTs at all.”
 
@@ -224,10 +196,7 @@ For Christopher, success will be if we can balance the need for both autonomy an
 
 Beyond that: “In 15 years I would like to be completely irrelevant. Blockchain technology should be boring. It should be like a database conference; who here would go to a database conference?”
 
-<figure>
-  <img src="media/image1.png" />
-  <figcaption></figcaption>
-</figure>
+![](media/image1.png)
 
 With that call to make events like this obsolete, the day of intents discussions came to an end, but guests continued to hang around the venue for several hours and chat, network, and enjoy the campside atmosphere, complete with a large tent and marshmallow roasting over an open fire. 
 
