@@ -8,7 +8,7 @@ imageAlt:
 imageCaption: 
 excerpt: Missed Intents Discussions but don’t have seven hours to watch all the videos? We’ve got you covered with the best takeaways from the very intents day of panels on protocols, distributed systems, cryptography, and applications related to intents.
 ---
-<
+
 *Missed Intents Discussions but don’t have seven hours to watch [all the videos](https://www.youtube.com/playlist?list=PL0JhdaMOBhSR0IkrXNx0XaHMjU34VO-2L)? We’ve got you covered with the best takeaways from the very intents day of panels on protocols, distributed systems, cryptography, and applications related to intents.*
 
 Intents Discussions was an event held before EthCC 2024 in Brussels, bringing together founders, builders, researchers, and decentralization maximalists in discussions on the state of architectures, protocols, ecosystems, and the role intents will play.
@@ -231,7 +231,4 @@ Beyond that: “In 15 years I would like to be completely irrelevant. Blockchain
 
 With that call to make events like this obsolete, the day of intents discussions came to an end, but guests continued to hang around the venue for several hours and chat, network, and enjoy the campside atmosphere, complete with a large tent and marshmallow roasting over an open fire. 
 
-Panelists covered a lot of ground, providing a clear snapshot of the state of the space and what’s to come for the world of intents, protocols, applications, and beyond. We’re grateful for all the participants who joined and helped make this one of the most memorable and impactful events of EthCC week 2024. Until next time, keep up the intents-ity. 
-
-
->
+Panelists covered a lot of ground, providing a clear snapshot of the state of the space and what’s to come for the world of intents, protocols, applications, and beyond. We’re grateful for all the participants who joined and helped make this one of the most memorable and impactful events of EthCC week 2024. Until next time, keep up the intents-ity.
