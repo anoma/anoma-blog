@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220">
+  <!-- Left side of the rule -->
+  <g transform="translate(50, 20)">
+    <!-- Top labels -->
+    <text x="20" y="15" text-anchor="middle" font-size="16" fill="#AB0000">(λx. y)z</text>
+    <text x="80" y="15" text-anchor="middle" font-size="16" fill="#AB0000">z</text>
+    <!-- Top slanted lines -->
+    <line x1="20" y1="20" x2="40" y2="45" stroke="#AB0000" />
+    <line x1="80" y1="20" x2="60" y2="45" stroke="#AB0000" />
+    <!-- Application node -->
+    <circle cx="50" cy="60" r="15" fill="white" stroke="#AB0000" />
+    <text x="50" y="65" text-anchor="middle" font-size="16" fill="#AB0000">@</text>
+    <!-- Connecting line to lambda -->
+    <line x1="50" y1="75" x2="50" y2="95" stroke="#AB0000" />
+    <!-- Lambda node -->
+    <circle cx="50" cy="110" r="15" fill="white" stroke="#AB0000" />
+    <text x="50" y="115" text-anchor="middle" font-size="16" fill="#AB0000">λ</text>
+    <!-- Bottom slanted edges -->
+    <line x1="40" y1="125" x2="20" y2="150" stroke="#AB0000" />
+    <line x1="60" y1="125" x2="80" y2="150" stroke="#AB0000" />
+    <!-- Bottom labels -->
+    <text x="20" y="165" text-anchor="middle" font-size="16" fill="#AB0000">x</text>
+    <text x="80" y="165" text-anchor="middle" font-size="16" fill="#AB0000">y</text>
+  </g>
+  
+  <!-- Rewrite arrow -->
+  <line x1="170" y1="90" x2="220" y2="90" stroke="#AB0000" stroke-width="2" />
+  <polygon points="220,90 210,85 210,95" fill="#AB0000" />
+  
+  <!-- Right side of the rule -->
+  <g transform="translate(250, 20)">
+    <!-- Top labels -->
+    <text x="20" y="15" text-anchor="middle" font-size="16" fill="#AB0000">(λx. y)z</text>
+    <text x="80" y="15" text-anchor="middle" font-size="16" fill="#AB0000">z</text>
+    <!-- Crossing lines -->
+    <line x1="20" y1="20" x2="80" y2="150" stroke="#AB0000" />
+    <line x1="80" y1="20" x2="20" y2="150" stroke="#AB0000" />
+    <!-- Bottom labels -->
+    <text x="20" y="165" text-anchor="middle" font-size="16" fill="#AB0000">x</text>
+    <text x="80" y="165" text-anchor="middle" font-size="16" fill="#AB0000">y</text>
+  </g>
+</svg>
