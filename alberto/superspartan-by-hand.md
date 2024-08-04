@@ -1,5 +1,6 @@
 ---
 title: SuperSpartan by Hand
+publish_date: 2024-08-05
 category: cryptography
 image: media/super-spartan.jpeg
 excerpt: The goal of this article is to dive into the techniques behind the SuperSpartan's polynomial IOP, which uses the sum-check protocol to prove CCS instances, by writing the protocol explicitely for a specific example. This is part 1 of a two-post series. These techniques used in SuperSpartan are at the core of the HyperNova protocol that will be explored in part 2.

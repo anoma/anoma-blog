@@ -1,5 +1,6 @@
 ---
 title: HyperNova by Hand
+publish_date: 2024-08-05
 category: cryptography
 image: media/hypernova.jpeg
 excerpt: Building on top of the techniques explored with SuperSpartan in part 1, the aim of this article is to unbundle the folding mechanism of the HyperNova protocol by writing it by hand. There is much wisdom hidden in the details.
