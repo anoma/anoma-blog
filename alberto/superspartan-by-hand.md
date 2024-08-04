@@ -346,7 +346,7 @@ G
     21*x11^2*x22^2 - 17*x11^2*x22 - 15*x11*x22^2 + 2*x11^2 + 11*x11*x22 - 2*x11
 </span> -->
 
-    > 21*x11^2*x22^2 - 17*x11^2*x22 - 15*x11*x22^2 + 2*x11^2 + 11*x11*x22 - 2*x11
+    21*x11^2*x22^2 - 17*x11^2*x22 - 15*x11*x22^2 + 2*x11^2 + 11*x11*x22 - 2*x11
 
 
 
@@ -923,6 +923,10 @@ Q((r_1, r_2)) &= \widetilde{eq}((\beta_1, \beta_2), (r_1, r_2)) \cdot (T_1 \cdot
 &\Longrightarrow \forall x_1, x_2 \in \{0,1\}. G((x_1, x_2)) = 0 \\
 &\Longrightarrow 1 \cdot (M_1 \cdot z \circ M_2 \cdot z) + (-1) \cdot (M_3 \cdot z) = \vec{0}
 \end{aligned}$
+
+> There are two ways in which a verifier may evaluate these multi-linear extension of CCS matrices: 
+> 1. if matrices are *structured* the verifier evaluates them in logarithmic time
+> 2. if matrices are *unstructured*, the prover can prove evaluations of MLE of sparse matrices in linear time using memory checking techniques (see Spark compiler in the [Spartan paper](https://eprint.iacr.org/2019/550.pdf)).
 
 ### Conclusion
 
