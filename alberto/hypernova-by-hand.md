@@ -2,12 +2,13 @@
 title: HyperNova by Hand
 category: cryptography
 image: media/hypernova.jpeg
-excerpt: Building on top of the techniques explored with SuperSpartan in part 1, the aim of this article is to dive deep into the folding mechanisms of the HyperNova protocol using a simple example. There is much wisdom hidden in the details.
+excerpt: Building on top of the techniques explored with SuperSpartan in part 1, the aim of this article is to unbundle the folding mechanism of the HyperNova protocol by writing it by hand. There is much wisdom hidden in the details.
 ---
 
 > *I'd like to thank Nicolas Mohnblatt for brainstorming, discussing and reviewing this article, and for his many shared insights, and to Srinath Setty for providing the inspiration for this work and feedback.*
 > *This article wouldn't have been possible without them. All mistakes are my own.*
 
+This article was originally written on a SageMath Jupyter notebook, which can be found [here](https://github.com/Acentelles/blogposts/tree/main/hypernova).
 
 ## Folding CCS relations in HyperNova
 
@@ -1307,7 +1308,7 @@ $\begin{aligned}
 
 ## Summary
 
-That was a long journey! We have managed to fold two iterations of our Fibonacci example and then verify the folding protocol by sum-checking the final linearised CCCS relation $R'_3$.
+We made it, again! We have managed to fold two iterations of our Fibonacci example and then verify the folding protocol by sum-checking the final linearised CCCS relation $R'_3$.
 
 At each iteration, the incoming relation $R^{(k)}_2 \in \mathcal{R}_{CCCS}$ generates random values $r^{(k)} \in \mathbb{F}$ that are propagated to the next accumulated relation $R^{(k+1)}_1 \in \mathcal{R}_{LCCCS}$. This serves as the glue that makes the domino effect possible.
 
