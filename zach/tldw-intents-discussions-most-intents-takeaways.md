@@ -29,6 +29,8 @@ She explained, “We realized that the technologies we’re building with decent
 
 ![](media/image5.jpg)
 
+Ultimately, Awa argued, decentralized architectures require a new phase of evolution to achieve Game B, with Anoma’s generalized intent-centric architecture as the strongest bet for this new paradigm. 
+
 ## P2P layers, intent gossip networks, and the edge of distributed systems
 
 The day of panels got underway with a [discussion of P2P layers](https://www.youtube.com/watch?v=awN_cDu_Qbk), featuring [Sam Hart](https://x.com/hxrts) ([Skip](https://x.com/skipprotocol)/[Timewave](https://x.com/timewavelabs)), [Wondertan](https://x.com/true_wondertan) ([Celestia](https://x.com/CelestiaOrg)), [Marius Poke](https://x.com/marius_poke) ([Informal Systems](https://x.com/informalinc)) and [Tobias Heindel](https://x.com/graphomath) ([Heliax](https://heliax.dev/)). The main question of the hour? What makes a good P2P network vs a bad one. 
@@ -39,7 +41,7 @@ For Wondertan, a good P2P layer should be minimal, and shouldn’t try to solve 
 
 What makes a bad P2P layer? The Inability to deal with flooding attacks, for one. Though solutions to this problem, if only partial, do exist: for example the introduction of randomness and the approach Anoma is taking with the heterogeneity of several domains. Tobias explained that this system of heterogeneous P2P domains means they can work together to form a stronger network – in the event of a flooding attack, one of the domains can alert the rest of the network and help mitigate the attack. 
 
-Ultimately, Tobias emphasized, the question of what makes a good P2P network doesn’t make sense, because you have to have a very clear vision of  exactly what the P2P network is for. TWondertan reiterated this point: you can’t make a single P2P system that’s good for everything (using IPFS as an example).
+Ultimately, Tobias emphasized, the question of what makes a good P2P network doesn’t make sense, because you have to have a very clear vision of  exactly what the P2P network is for. Wondertan reiterated this point: you can’t make a single P2P system that’s good for everything (using IPFS as an example).
 
 ### A network of networks
 
@@ -102,7 +104,7 @@ What are some unique applications for intents? A common theme on this question i
 
 > *“Think about what the internet was like in the 90s. When the internet was a lot smaller, Craigslist was just a bulletin board to matchmake between all sorts of different weird preference functions…. Ebay in the 90s was this crazy place where you could buy anything. I think there’s a wanting to get back to this universal marketplace rather than a bunch of siloed, segmented marketplaces that only do 1 thing.”*
 
-Rob reiterated this, pointing out the potential of building around human desires and preferences, being able to form communities around those desires and preferences, and having a global marketplace for matching between them. Praneeth also pointed out the importance of connecting domains that can’t be accurately represented by each other, e.g. the problem of oracles, and getting representations of commitments in 1 domain that get reflected in another domain. 
+Rob reiterated this, pointing out the potential of building around human desires and preferences, being able to form communities around those desires and preferences, and having a global marketplace for matching between them. Praneeth also pointed out the importance of connecting domains that can’t be accurately represented by each other, e.g. the problem of oracles, and getting representations of commitments in one domain that get reflected in another domain. 
 
 An important benefit of intent-centric architectures, according to Zaki, is the ability to have several UIs, each with their own preference functions, that can feed into the same solving system, something that can remove the fragmentation that currently exists between applications dealing with similar or complementary intents. As an example, he mentioned needing to run through 6 different travel apps that morning to find one that could get him to his destination. “What you would want is, yes there can be many apps and some of them specialize in letting you express different preferences, but there could be just 1 app that drivers use and pull all the order flow that matches for them.”
 
@@ -176,7 +178,7 @@ Vitalik ran through his thought process, lessons learned, and design decisions w
 
 Chris discussed Moxy Marlinspike’s talk “[The ecosystem is moving](https://www.youtube.com/watch?v=DdM-XTRyC9c)” in reference to his realization that “we have a need to iterate on the protocols fast enough that they can actually compete with Web2”, pointing out the difficulties of keeping up with Web2 via decentralized governance and social consensus processes. 
 
-Vitalik countered this by pointing to the successes of Ethereum in conducting upgrades across an increasing number of client teams, doing a much better job than many expected. He sees decentralization in this context as a benefit rather than a hindrance: having 5 parallel teams gives you a larger pool of expertise that ends up helping you – something he learned gradually over time.
+Vitalik countered this by pointing to the successes of Ethereum in conducting upgrades across an increasing number of client teams, doing a much better job than many expected. He sees decentralization in this context as a benefit rather than a hindrance: having five parallel teams gives you a larger pool of expertise that ends up helping you – something he learned gradually over time.
 
 Chris agreed on this point, pointing to the benefit of having a diversity of perspectives, ideas, and org structures, referencing the Ethereum merge as the most complex distributed system upgrade ever, a major feat for decentralized governance. Pointing to the benefits of diversity, he shared his thoughts on the role Anoma can play for the Ethereum ecosystem:
 
