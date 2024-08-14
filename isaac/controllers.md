@@ -39,7 +39,7 @@ Attempts to create such a controller typically require trust in a single authori
 In fact, it is unlikely that _all_ worthwhile applications will ever agree on a controller who can manage all of their state.
 This is why interoperability is so important: the internet works not because we all trust some single authority to manage all of it but because many different applications in different trust domains can interact. 
 
-Here we are concerned with cases where objects _transfer_ between controllers: we have to track controllers may have affected each object.
+Here we are concerned with cases where objects can be _transferred_ between controllers, and therefore we have to track which controllers may have affected each object.
 If there are any properties or invariants the object is supposed to maintain, there are the controllers that may have "messed up" the object. 
 In the simplest case, we might imagine tagging each object with a set of _affecting controllers_.
 In general, if an application (or a user) trusts all the affecting controllers in an object's tag, it can rely on that object.
