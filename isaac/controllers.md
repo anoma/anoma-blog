@@ -238,7 +238,7 @@ This is where a little trust goes a long way: if applications (or users) have sp
 
 
 ## Conclusion
-The anoma ecosystem will feature digital resources which can easily transfer across mutually-distrusting instances.
+The Anoma ecosystem will feature digital resources which can easily be transferred across mutually-distrusting instances.
 Our controller tag infrastructure allows applications to make specific guarantees about their resources.
 By maintaining CCT, applications can use resources whose controllers they trust, and be sure they're working with serializable resource histories, ruling out double-consumes. 
 
