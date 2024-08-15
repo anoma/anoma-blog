@@ -26,12 +26,6 @@ using Random
 # ╔═╡ 2958a4ba-a72c-4340-9b80-23fcb2892bce
 using DataStructures
 
-# ╔═╡ c99fea3c-4a87-11ef-0cf6-8736f39ca37a
-a = 1 + 1 * 100
-
-# ╔═╡ 69240598-25fa-41e5-ad47-a831533d9f8a
-b = 1 / 100
-
 # ╔═╡ 8e3663b3-3459-4e5a-9982-86fceebb98e8
 md"""
 using PlutoUI
@@ -47,15 +41,6 @@ md"""
 
 # ╔═╡ b8ec877f-c1ba-42ce-918d-cb05b5b75a3a
 text = "ababccd"
-
-# ╔═╡ 302189d2-a0b3-4e3b-967a-e7222f9c53d4
-md"""
-# let us do math $(a)
-
-your text is: $text
-
-
-"""
 
 # ╔═╡ fa58c4c6-a287-4292-9062-7c5adabe4fff
 letters = collect(text)
@@ -98,11 +83,24 @@ We are using a very simple class of intents: surplus/supply and need/demand for 
 
 ### Rough plan
 
-- The main goal is to compute average discounted utilities after every global pool solving, i.e., after each "batch" of the global batch auction, and copute averages over time using a [grouped bar plots](https://docs.juliaplots.org/dev/generated/statsplots/#Grouped-Bar-plots), but only after finding interesting parameters
-- for finding interesting parameters, we make [3d plots](https://discourse.julialang.org/t/plotting-a-3d-surface/17143/2) for a small number of depths,
-like depth three to five and the 3d plots in the x-y plane, we run through
-  - discount factor (probably best for the time dimension, if we need it), e.g., .5 to .9
-  - variability, e.g., 5:15
+- The main goal is to compute average discounted utilities after 
+  every global pool solving, 
+  i.e., after each "batch" of the global batch auction,
+  and compute averages over time using a
+  [grouped bar plot](https://docs.juliaplots.org/dev/generated/statsplots/#Grouped-Bar-plots), 
+  but only after finding interesting parameters
+- for (illustrations of) parameter search, 
+  we make ([animated](https://www.juliabloggers.com/animations-with-plots-jl/)) [3d plots](https://discourse.julialang.org/t/plotting-a-3d-surface/17143/2)
+  for a small number of depths—say three, four, or maximally five.
+  For each 3d plot, in the x-y plane, we run through
+  batch frequency and _variability_ of intents
+  (how many different ressources there are);
+  the time dimension (in the animation) is great for 
+  the discount factor, _between_ 0 and 1 (the ε-distance to 0 and 1 is given by one over the number of frames $1/\mathtt{frameCount})$. 
+
+> What about the number of cycles???
+
+Finally, below each 3d plot, we give the grouped bar plot of the maximal utility (for a given frame). 
 
 If for none of these parameters we get utitlity gains realtive to global solving only, we are a little bit in a pickle ... 
 
@@ -145,7 +143,7 @@ not any input field for this parameter right now
 """
 
 # ╔═╡ b1e569ef-437c-4629-8b65-25be8fbbb0f8
-theVariability = 10
+theVariability = 16
 
 # ╔═╡ 3087847d-a284-4271-bfc6-eb8b66df1f5a
 println("variability is $theVariability")
@@ -175,6 +173,13 @@ md"""
 We make the intents list a global parameter (for simplicity); we shall work on a copy and later check we have not fumbled something.
 """
 
+# ╔═╡ 0b7cdb22-7d6d-415d-bb50-06ac8540d0fa
+# ╠═╡ disabled = true
+#=╠═╡
+theMutableIntentsList = MutableLinkedList{Tuple{Float64, Int64, Int64}}()
+
+  ╠═╡ =#
+
 # ╔═╡ 4e55202e-ac4b-493d-9ec0-6dfc5b79452b
 theRNG = MersenneTwister(1337)
 
@@ -192,6 +197,43 @@ intentsWaitingTimes = Exponential(.1 / cycles)
 md"""
 Next, we calculate all the intents for the experiment.
 """
+
+# ╔═╡ c40acdc8-a39c-4486-8887-af47ceaf7d84
+begin
+	# reset
+	theMutableIntentsList = MutableLinkedList{Tuple{Float64, Int64, Int64}}()
+	# which ressources are we considering?
+	local candidateArray = union(-theVariability:-1, 1:theVariability)
+	# initialize local sum of waiting times for new intents, i.e., the time we have to wait for the first intent to arrive
+	local localsum = Random.rand(intentsWaitingTimes);
+	# as long as we do not reach the end of the experiment (at time unit 1)
+	while (localsum < 1)
+		# randomly generate supply or demand for a random resource
+		nextV = Random.rand(candidateArray)
+		# generate next intent ... 
+		let newIntent = (localsum, nextV, Random.rand(1:locations))
+			# ... and push it to the list (at the end)
+			push!(theMutableIntentsList, newIntent)
+		end
+		# update sum of the waiting times 
+		localsum += Random.rand(intentsWaitingTimes);
+		# ☝️ this is the arrival time of the *next* intent (if not too late)
+	end
+	# some "debug" printing
+	local theLength = length(theMutableIntentsList)
+	local thePeek = (getindex(theMutableIntentsList, div(theLength, 2)-1),
+					getindex(theMutableIntentsList, div(theLength, 2)),
+					getindex(theMutableIntentsList, div(theLength, 2)+1))
+	println("intents created: $theLength \n and the first, median three, and last: \n");
+	println("Intent #1 is $(theMutableIntentsList[1])")
+	for i in eachindex(thePeek)
+		let index = i + (div(theLength, 2)-2)
+		in 
+		println("Intent #$index is $(thePeek[i])")
+		end
+	end
+	println("Intent #theLength is $(theMutableIntentsList[theLength])")
+end
 
 # ╔═╡ 1782bc18-864c-4063-beb3-ff9ff2f029f4
 theIntents = collect(theMutableIntentsList)
@@ -349,7 +391,7 @@ function solve(intents, depth::Int; slowdown::Int=1, variability::Int=theVariabi
 	# the following are the indices of the leaves
     local leafIndices = poolRange(depth);
 	# the variabilities in question
-	local allVs = union(-variability:-1,1:variability);
+	local allVs = union(-variability:-1, 1:variability);
 	# the balances (initially all zero)
 	local balance = [Dict(
 						a => 0
@@ -357,11 +399,11 @@ function solve(intents, depth::Int; slowdown::Int=1, variability::Int=theVariabi
 						) 
 						for x = 1:poolCount
 					]
-	# the solution (initially empty)
+	# the solution (initially empty) for a fixed depth
 	solution = Dict()
 	# index into the intent list (mathematical index at one)
 	local idx = 1
-	# the number of leaf level auctions
+	# the total number of leaf pool auctions
 	local tickCount = div(cycles*2^depth,slowdown)
 
 	#### the main loop 
@@ -427,50 +469,6 @@ aDict["b"] = 3
 
 # ╔═╡ d558ba68-9e3d-45f1-b705-2516c6064edb
 println("$aDict")
-
-# ╔═╡ c40acdc8-a39c-4486-8887-af47ceaf7d84
-begin
-	# reset
-	theMutableIntentsList = MutableLinkedList{Tuple{Float64, Int64, Int64}}()
-	# which ressources are we considering?
-	local candidateArray = union(-theVariability:-1, 1:theVariability)
-	# initialize local sum of waiting times for new intents, i.e., the time we have to wait for the first intent to arrive
-	local localsum = Random.rand(intentsWaitingTimes);
-	# as long as we do not reach the end of the experiment (at time unit 1)
-	while (localsum < 1)
-		# randomly generate supply or demand for a random resource
-		nextV = Random.rand(candidateArray)
-		# generate next intent ... 
-		let newIntent = (localsum, nextV, Random.rand(1:locations))
-			# ... and push it to the list (at the end)
-			push!(theMutableIntentsList, newIntent)
-		end
-		# update sum of the waiting times 
-		localsum += Random.rand(intentsWaitingTimes);
-		# ☝️ this is the arrival time of the *next* intent (if not too late)
-	end
-	# some "debug" printing
-	local theLength = length(theMutableIntentsList)
-	local thePeek = (getindex(theMutableIntentsList, div(theLength, 2)-1),
-					getindex(theMutableIntentsList, div(theLength, 2)),
-					getindex(theMutableIntentsList, div(theLength, 2)+1))
-	println("intents created: $theLength \n and the first, median three, and last: \n");
-	println("Intent #1 is $(theMutableIntentsList[1])")
-	for i in eachindex(thePeek)
-		let index = i + (div(theLength, 2)-2)
-		in 
-		println("Intent #$index is $(thePeek[i])")
-		end
-	end
-	println("Intent #theLength is $(theMutableIntentsList[theLength])")
-end
-
-# ╔═╡ 0b7cdb22-7d6d-415d-bb50-06ac8540d0fa
-# ╠═╡ disabled = true
-#=╠═╡
-theMutableIntentsList = MutableLinkedList{Tuple{Float64, Int64, Int64}}()
-
-  ╠═╡ =#
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1673,9 +1671,6 @@ version = "1.4.1+1"
 """
 
 # ╔═╡ Cell order:
-# ╠═c99fea3c-4a87-11ef-0cf6-8736f39ca37a
-# ╠═69240598-25fa-41e5-ad47-a831533d9f8a
-# ╠═302189d2-a0b3-4e3b-967a-e7222f9c53d4
 # ╠═8e3663b3-3459-4e5a-9982-86fceebb98e8
 # ╠═1d878428-07a5-430a-b810-5671b4bc3962
 # ╠═fa58c4c6-a287-4292-9062-7c5adabe4fff
