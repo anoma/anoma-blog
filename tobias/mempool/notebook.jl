@@ -46,7 +46,7 @@ md"""
 """
 
 # ╔═╡ b8ec877f-c1ba-42ce-918d-cb05b5b75a3a
-text = "abcd"
+text = "ababccd"
 
 # ╔═╡ 302189d2-a0b3-4e3b-967a-e7222f9c53d4
 md"""
@@ -94,11 +94,11 @@ Plots.bar(reverse(sort(anArray)), size = (600,300))
 md"""
 ## Getting some numbers
 
-We are using a very simple class of intents: surplus/supply and need/demand for a naumber of resources; the latter, we number 1 .. N, and the bigger the N, the higher the "variability" of intents. The advantag of this type of intent is a very simple and efficient matching mechanim: in a single "auction", we simply "cancel out" surplus and need, which contributes a single unit of utility.
+We are using a very simple class of intents: surplus/supply and need/demand for a set of resources; we refer to resources via a number $1, \dotsc, N$. The bigger the resource count $N$, the higher the "variability" of intents. The advantage of the simplicity of the _`have/need`-resource_ intent is a very simple and efficient matching mechanism: in a single "auction", we simply "cancel out" surplus and need, which contributes a single unit of utility for each single occurrence of a resource.
 
 ### Rough plan
 
-- The main goal is to compute average discounted utilities after every global pool solving, i.e., after each "cycle" of the global batch auction, and copute averages over time using a [grouped bar plots](https://docs.juliaplots.org/dev/generated/statsplots/#Grouped-Bar-plots), but only after finding interesting parameters
+- The main goal is to compute average discounted utilities after every global pool solving, i.e., after each "batch" of the global batch auction, and copute averages over time using a [grouped bar plots](https://docs.juliaplots.org/dev/generated/statsplots/#Grouped-Bar-plots), but only after finding interesting parameters
 - for finding interesting parameters, we make [3d plots](https://discourse.julialang.org/t/plotting-a-3d-surface/17143/2) for a small number of depths,
 like depth three to five and the 3d plots in the x-y plane, we run through
   - discount factor (probably best for the time dimension, if we need it), e.g., .5 to .9
@@ -138,7 +138,7 @@ it correlates strongly with how likely intents are matched.
 
 # ╔═╡ 8f728722-4749-41be-880f-e43afa80d9b5
 md"""
-not a chosen parameter right now
+not any input field for this parameter right now
 ```
 @bind theVariability NumberField(1:100)
 ```
@@ -152,12 +152,17 @@ println("variability is $theVariability")
 
 # ╔═╡ 5058ae17-ca66-4885-869d-841760e0e8fa
 md"""
-The depth is the number is the same as the number of layers minus one.
+The _depth_ is the number is the same as the number of layers minus one or—equivalently---the length of a path of maximal length from the root to leaf.
 So, if we have just one layer---only one global pool---the depth is zero.
 """
 
 # ╔═╡ 2c96e985-d658-4388-81c6-04c3b229d1b6
 theDepth=3
+
+# ╔═╡ 48fe2bd1-3c7b-4391-8c9e-565614d2a84d
+md"""
+The _locations_ are the lowest level pools, i.e., the pools at the leaves.
+"""
 
 # ╔═╡ b16d90b5-25b7-4c96-a9d6-d38b8387508f
 locations = 2^theDepth
@@ -165,46 +170,75 @@ locations = 2^theDepth
 # ╔═╡ 246b6743-c618-421a-a1b9-74b37da7bc21
 discount = .7
 
-# ╔═╡ 0b7cdb22-7d6d-415d-bb50-06ac8540d0fa
-theIntentsList = MutableLinkedList{Tuple{Float64, Int64, Int64}}()
-
+# ╔═╡ 151d4f4d-1d9e-459b-a4aa-976073387796
+md"""
+We make the intents list a global parameter (for simplicity); we shall work on a copy and later check we have not fumbled something.
+"""
 
 # ╔═╡ 4e55202e-ac4b-493d-9ec0-6dfc5b79452b
 theRNG = MersenneTwister(1337)
 
-# ╔═╡ 78499069-9aae-4bfb-b713-fe9f62a9357b
-timeWindow = cycles*locations
+# ╔═╡ c7129fa6-2898-466f-83ef-9a855b12f202
+md"""
+We essentially fix the time for how long the virtual experiments runs, independently for how many cycles we want. Thus, “w.l.o.g.” the length of the experiment is 1.
+Moreover, 
+we want roughly a handful of intents per cycle.
+"""
 
-# ╔═╡ c40acdc8-a39c-4486-8887-af47ceaf7d84
-begin
-	# initialize local sum of waiting times for new intents (the sum of a single summand, viz. the waiting time for the first intent)
-	local localsum = Random.rand(anExampleDistribution)
-	# while we are still in the time window
-	while (localsum < timeWindow)
-		# which ressources are we considering?
-		let candidateArray = union(-theVariability:-1, 1:theVariability)
-			# randomly generate a new resources supply / demand
-			nextV = Random.rand(candidateArray)
-			# generate next intent
-			let newEntry = (localsum, nextV, Random.rand(1:locations))
-				# and push it to the list
-				push!(theIntentsList, newEntry)
-			end
-		end
-		# update local sum for *next* intent (if not too late)
-		localsum += Random.rand(anExampleDistribution);
-	end
-	local theLength = length(theIntentsList)
-	local thePeek = (getindex(theIntentsList, div(theLength, 2)),
-					getindex(theIntentsList, div(theLength, 2)+1),
-					getindex(theIntentsList, div(theLength, 2)+2))
-	println("intents created: $theLength \n and the median three: \n $thePeek");
+# ╔═╡ 5c80d4d3-ac89-49f0-8c80-bf0e519ab4b2
+intentsWaitingTimes = Exponential(.1 / cycles)
+
+# ╔═╡ a4c4825c-31e6-4d23-a03c-3e510235d4a1
+md"""
+Next, we calculate all the intents for the experiment.
+"""
+
+# ╔═╡ 1782bc18-864c-4063-beb3-ff9ff2f029f4
+theIntents = collect(theMutableIntentsList)
+
+# ╔═╡ 51bdce7d-7353-424b-bc54-6965488ab789
+md"""
+Now, we plot the sorted and reversed differences of the waiting times (as a soundness check that we are ranomd and properly distributed.)
+"""
+
+# ╔═╡ 0fe2a384-0a8e-4e65-940c-dff0b3a68eb0
+begin 
+	local s = theIntents[1:length(theIntents)-1];
+	local e = theIntents[2:length(theIntents)];
+	local z = collect(zip(s,e));
+	local diffs = [round(digits=6,y[1]-x[1]) for (x,y) in z];
+	Plots.bar(reverse(sort(diffs)), size = (800,400); label="occurrence numbers for waiting times for the next intent")
 end
 
 # ╔═╡ 3f7e9337-a0fb-47fa-9b74-5ae004cd9038
-function utility(t, base)
-	base * (discount^t)
+"The time discounted utility"
+function utility(t; base=1, factor = discount)
+	base * (factor^t)
 end
+
+# ╔═╡ 2a18a5d1-555b-4561-a943-3a8f45e42eb9
+md"""
+We have a complete binary tree of pools and each pool is at a certain depth. So, we have $2^{\mathrm{depth}}$ leaves, and $2^{\mathrm{depth}-1}$ inner nodes (counting the root as an inner node if it is not a leaf).
+
+Each inner node is a pool. The root has number 1. The highest pool number is $2^{\mathrm{depth+1}}-1$.
+"""
+
+# ╔═╡ 9d2fa705-0521-4991-bfe2-ed658f468a3a
+md"""
+The pool numbering is as follows if the depth is 2, i.e, if we have three layers
+(indicated bye square brackets `[` `]`):
+```
+    [1]  
+  [2   3]
+ [4 5 6 7]
+```
+
+Thus, each layer starts at $2^{\mathrm{depth}}$, where the depth of the root is $0$.
+
+This numbering is convenient as going "up" amounts to division by two,
+or more precisely, if `x` is the index of the current pool,
+the parent pool is given by `div(x,2)` (except for the root pool, which does not have a parent pool).
+"""
 
 # ╔═╡ c51ec554-f835-4fae-a739-f10d2f3f9243
 pools = Dict(
@@ -212,13 +246,48 @@ pools = Dict(
 	for x in 1:(2*locations -1)
 )
 
+# ╔═╡ f9098fe1-afe0-4a39-b5ee-d81872582637
+"""
+    poolRange(depth)
+
+Computes the range of numbers of pools at the layer of the given `depth`.
+The depth must be non-negative.
+
+### Arguments
+
+- `depth::Integer`: the depth of the layer of pools
+"""
+function poolRange(depth::Int)
+	@assert depth > -1 
+		"No such thing as negative depth!"
+	return 2^depth:2^(depth+1)-1
+end
+
+# ╔═╡ a723e25b-1efa-4684-bc42-143b65b219ba
+"""
+    parentOf(pool)
+
+Computes the parent pool of a given pool.
+
+### Arguments
+
+- `pool::Integer`: the number of the pool that may not be the root (1)
+"""
+function parentOf(pool::Int)
+	@assert pool > 1 "This pool has no pool number!"
+	div(pool, 2)
+end
+
 # ╔═╡ ae227674-476f-4582-a48a-98c3ee56c8bd
 md"""
 ### Algorithm for solution calculation
 
-We want to calculate _solutions,_ which essentially annotate the list of intents with a solving time. So, we fabricate a dictionary that maps each intent to its solving time. This will also make it easy to calculate the utilities.
+We want to calculate _solutions,_ which essentially annotate the list of intents with a solving time. So, we fabricate a dictionary that maps each intent to its solving time, which in the end will give all information about the solution. Thus,
+the calcuation of utilities can be performed afterwards (for any discount factor).
+In fact, 
+we also compute solutions for all smaller depth values.
 
-#### Variables
+#### Variables (for any fixed depth)
 
 - the pool _contents:_ a dictionary from pool numbers to lists of intents (initially empty)
 - the _solutions:_ a dictionary from intents to solving time (initially empty)
@@ -241,71 +310,67 @@ We want to calculate _solutions,_ which essentially annotate the list of intents
 The main result are the solutions, which give for each time stamped intent the time when it is solved.  
 """
 
-# ╔═╡ 1ca31c11-b415-4bdc-9871-bc9ab5f13637
-numberOfPools = 2*locations - 1
-
-# ╔═╡ 9d2fa705-0521-4991-bfe2-ed658f468a3a
+# ╔═╡ 57f5209c-389f-4706-afd1-99f9a16686f3
 md"""
-the pool numbering is as follows for depth = 2, i.e, three layers
-```
-    1  
-  2   3
- 4 5 6 7
-```
+Recall that there is always _the_ list of intents,
+which we want to want to take as the _same_ input 
+to several pool configurations.
 
-Thus, each layer starts at 2^depth, where the depth of the root is $0$.
-
-This numbering is convenient as going up is achieved by `div(x,2)`
+The solving function takes two arguments:
+a divisor for the variability, and a depth parameter;
 """
 
-# ╔═╡ 83cf50d8-874c-4f6f-88ae-bd11802a38e1
-begin
-	## remember that indexing is from 1 as in math
-	local l = MutableLinkedList()
-	push!(l,"a")
-	# print(l[1])
-end
-
-# ╔═╡ f5c59fb4-e92d-46dd-a4a3-6c899a6846de
-(1,"a",3)[2]
-
-# ╔═╡ cd040f99-41da-4fab-b30f-afaa9a67d2ec
-(1:10)[5]
-
 # ╔═╡ 05ebc19a-da0e-44bc-ab2c-7a4427c56df9
-function solve(divisor)
-	#check proper inputs
-	@assert mod(theVariability, divisor) == 0 
-		"Improper divisor for variability!"
-	# define and initialize variables
-	#
-	# the variability for this one needs to be adapted
-	local theV = div(theVariability, divisor)
-	# the pool contents (initially empty)
-	local contents = [MutableLinkedList() for x=1:numberOfPools]
-	# the following are the indices
-    local leafIndices = div(numberOfPools+1,2);numberOfPools
-    @assert (numberOfPools + 1) == (2 * firstLeaf) "Got indexing wrong?!"
+"The function for solving a given set of intents
 
+- the slowdown is proportional to the duration of a top level batch 
+  (effectively lowering the number of cycles as it grows)
+
+"
+function solve(intents, depth::Int; slowdown::Int=1, variability::Int=theVariability)
+	# ---
+	#check proper inputs
+	# ---
+	# variability must be a divisor of theVariability (the fixed maximum)
+	@assert mod(theVariability, variability) == 0 
+		"The variability is not a divisor of $theVariability !"
+	# the slowdown must be strictly positive
+	@assert slowdown > 0
+		"Speedup must be strictly positive!"
+    # ---
+	# define and initialize variables
+    # ---
+	# duration of a _leaf_ batch (remember the whole experiment take 1 time unit)
+	local duration = slowdown/(cycles*2^depth)
+	# the number of all pools
+    local poolCount = (2^depth)-1
+	# the pool contents (initially empty)
+	local contents = [MutableLinkedList() for x=1:poolCount]
+	# the following are the indices of the leaves
+    local leafIndices = poolRange(depth);
+	# the variabilities in question
+	local allVs = union(-variability:-1,1:variability);
 	# the balances (initially all zero)
 	local balance = [Dict(
 						a => 0
-							for a in -theV:theV
+							for a in allVs
 						) 
-						for x = 1:numberOfPools
+						for x = 1:poolCount
 					]
 	# the solution (initially empty)
 	solution = Dict()
 	# index into the intent list (mathematical index at one)
 	local idx = 1
+	# the number of leaf level auctions
+	local tickCount = div(cycles*2^depth,slowdown)
 
 	#### the main loop 
 
-	# for each tick
-	for tick in 1:timeWindow
+	# for each _tick,_ which is the sequence number of leaf level batches
+	for tick in 1:tickCount
 		# "during", i.e. before the end of this tick, we do the following
 		# take in new intents at the leaf pools (yes, that happens for every tick)
-		while (theIntentslist[idx])[1] < tick
+		while (theIntentsList[idx])[1] < tick
 			# for all next intents with time < tick
 			let (time, resource, location) = theIntentslist[idx]
 				# put in the pool
@@ -316,13 +381,13 @@ function solve(divisor)
 			idx += 1
 		end
 		# now, we go top down (breadth first, to be precise) through all pools
-		for depth in 0:theDepth
+		for d in 0:depth
 			# should we do solving, using the *current* contents/balances?
-			if mod(tick, 2^(theDepth-depth)) == 0
-				# go through pools at this depth
-				local first = 2^depth
-				local last = firstPool + 2^depth -1
-				@assert (last == 2^(depth+1)-1) "or I cannot calculate"
+			if mod(tick, 2^(depth-d)) == 0
+				# go through pools at this depth d
+				local first = 2^d
+				local last = firstPool + 2^d -1
+				@assert (last == 2^(d+1)-1) "or I cannot calculate"
 				for pool in first:last
 					# for every pool on this level
 					for j in 1:length(contents[pool])
@@ -334,7 +399,7 @@ function solve(divisor)
 							# TODO check for undefined
 							solution[thisIntent] = time
 						else
-							if depth == 0
+							if d == 0
 								push!(contents[pool], thisIntent)
 							else
 								balance[pool][resource] += -1
@@ -362,6 +427,50 @@ aDict["b"] = 3
 
 # ╔═╡ d558ba68-9e3d-45f1-b705-2516c6064edb
 println("$aDict")
+
+# ╔═╡ c40acdc8-a39c-4486-8887-af47ceaf7d84
+begin
+	# reset
+	theMutableIntentsList = MutableLinkedList{Tuple{Float64, Int64, Int64}}()
+	# which ressources are we considering?
+	local candidateArray = union(-theVariability:-1, 1:theVariability)
+	# initialize local sum of waiting times for new intents, i.e., the time we have to wait for the first intent to arrive
+	local localsum = Random.rand(intentsWaitingTimes);
+	# as long as we do not reach the end of the experiment (at time unit 1)
+	while (localsum < 1)
+		# randomly generate supply or demand for a random resource
+		nextV = Random.rand(candidateArray)
+		# generate next intent ... 
+		let newIntent = (localsum, nextV, Random.rand(1:locations))
+			# ... and push it to the list (at the end)
+			push!(theMutableIntentsList, newIntent)
+		end
+		# update sum of the waiting times 
+		localsum += Random.rand(intentsWaitingTimes);
+		# ☝️ this is the arrival time of the *next* intent (if not too late)
+	end
+	# some "debug" printing
+	local theLength = length(theMutableIntentsList)
+	local thePeek = (getindex(theMutableIntentsList, div(theLength, 2)-1),
+					getindex(theMutableIntentsList, div(theLength, 2)),
+					getindex(theMutableIntentsList, div(theLength, 2)+1))
+	println("intents created: $theLength \n and the first, median three, and last: \n");
+	println("Intent #1 is $(theMutableIntentsList[1])")
+	for i in eachindex(thePeek)
+		let index = i + (div(theLength, 2)-2)
+		in 
+		println("Intent #$index is $(thePeek[i])")
+		end
+	end
+	println("Intent #theLength is $(theMutableIntentsList[theLength])")
+end
+
+# ╔═╡ 0b7cdb22-7d6d-415d-bb50-06ac8540d0fa
+# ╠═╡ disabled = true
+#=╠═╡
+theMutableIntentsList = MutableLinkedList{Tuple{Float64, Int64, Int64}}()
+
+  ╠═╡ =#
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1594,20 +1703,27 @@ version = "1.4.1+1"
 # ╠═3087847d-a284-4271-bfc6-eb8b66df1f5a
 # ╠═5058ae17-ca66-4885-869d-841760e0e8fa
 # ╠═2c96e985-d658-4388-81c6-04c3b229d1b6
+# ╠═48fe2bd1-3c7b-4391-8c9e-565614d2a84d
 # ╠═b16d90b5-25b7-4c96-a9d6-d38b8387508f
 # ╠═246b6743-c618-421a-a1b9-74b37da7bc21
+# ╠═151d4f4d-1d9e-459b-a4aa-976073387796
 # ╠═0b7cdb22-7d6d-415d-bb50-06ac8540d0fa
 # ╠═4e55202e-ac4b-493d-9ec0-6dfc5b79452b
-# ╠═78499069-9aae-4bfb-b713-fe9f62a9357b
+# ╠═c7129fa6-2898-466f-83ef-9a855b12f202
+# ╠═5c80d4d3-ac89-49f0-8c80-bf0e519ab4b2
+# ╠═a4c4825c-31e6-4d23-a03c-3e510235d4a1
 # ╠═c40acdc8-a39c-4486-8887-af47ceaf7d84
+# ╠═1782bc18-864c-4063-beb3-ff9ff2f029f4
+# ╟─51bdce7d-7353-424b-bc54-6965488ab789
+# ╠═0fe2a384-0a8e-4e65-940c-dff0b3a68eb0
 # ╠═3f7e9337-a0fb-47fa-9b74-5ae004cd9038
-# ╠═c51ec554-f835-4fae-a739-f10d2f3f9243
-# ╠═ae227674-476f-4582-a48a-98c3ee56c8bd
-# ╠═1ca31c11-b415-4bdc-9871-bc9ab5f13637
+# ╠═2a18a5d1-555b-4561-a943-3a8f45e42eb9
 # ╠═9d2fa705-0521-4991-bfe2-ed658f468a3a
-# ╠═83cf50d8-874c-4f6f-88ae-bd11802a38e1
-# ╠═f5c59fb4-e92d-46dd-a4a3-6c899a6846de
-# ╠═cd040f99-41da-4fab-b30f-afaa9a67d2ec
+# ╠═c51ec554-f835-4fae-a739-f10d2f3f9243
+# ╠═f9098fe1-afe0-4a39-b5ee-d81872582637
+# ╠═a723e25b-1efa-4684-bc42-143b65b219ba
+# ╠═ae227674-476f-4582-a48a-98c3ee56c8bd
+# ╠═57f5209c-389f-4706-afd1-99f9a16686f3
 # ╠═05ebc19a-da0e-44bc-ab2c-7a4427c56df9
 # ╠═5af91362-c224-41f5-9fa0-f5b7254b547a
 # ╠═93aef2c2-25de-4332-9f3e-3d9f45304d19
