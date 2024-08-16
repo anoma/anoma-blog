@@ -33,7 +33,7 @@ In Uniswap, Liquidity providers (LPs) market make by depositing two tokens into 
 
 Uniswap v1 introduced an on-chain system of smart contracts on Ethereum, that implement a class of AMM called a Constant Product Market Maker (CPMM).
 
-$x * y = k$
+$$x * y = k$$
 
 [CPMMs](https://arxiv.org/pdf/2003.10001.pdf) allow for the exchange of tokens without the need for a trusted third-party. One main concern for users of these markets is whether prices on decentralized exchanges accurately follow those on centralized exchanges, which currently have more liquidity.
 
