@@ -53,7 +53,7 @@ In Anoma, the role of a solver is composed of Gossiper, Selector, Searcher and P
 
 Now that we have loosely defined the term solver, let's focus on the slow game example at hand. 
 
->Note here we refer to slack as noted in the report as MEV. The report also gives examples of Controller selection in Anoma and delegated governance systems. See the ART for more details. 
+>Note here we refer to slack as noted in the report as MEV. The report also gives examples of Controller selection in Anoma and delegated governance systems. See the ART for more details. In future work we will formally define the term [MEV](https://arxiv.org/abs/2309.14201) originally known as [miner extractable value](https://arxiv.org/pdf/1904.05234). 
 
 - Fast Agent - the solver in question (fast agent) chooses to accept or reject specific intents. Exploits price differences between intents (MEV) or returns MEV to users.
 - Slow Agent - Users submitting intents to the solver measure if the solver is censoring intents (over time) and measure how much MEV is being returned (to users).
