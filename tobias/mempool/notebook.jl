@@ -30,13 +30,6 @@ using DataStructures
 # for doing beautiful plots
 using Plots
 
-# ╔═╡ 8e3663b3-3459-4e5a-9982-86fceebb98e8
-# ╠═╡ disabled = true
-#=╠═╡
-# for fancy UI
-using PlutoUI
-  ╠═╡ =#
-
 # ╔═╡ 82245b9d-d1f9-46a5-acc3-28b928fa193d
 md"""
 # Hierachical Operator Pools (Implementation Details)
@@ -113,28 +106,29 @@ If for none of these parameters we get utitlity gains realtive to mon-pools,
 we have saved a lot of work going in the wrong direction!
 """
 
+# ╔═╡ 8e3663b3-3459-4e5a-9982-86fceebb98e8
+# ╠═╡ disabled = true
+#=╠═╡
+# for fancy UI
+using PlutoUI
+  ╠═╡ =#
+
 # ╔═╡ 1d878428-07a5-430a-b810-5671b4bc3962
 # ╠═╡ disabled = true
 #=╠═╡
 isvowel(c) = c ∈ "aeiou"
   ╠═╡ =#
 
-# ╔═╡ 3d917d85-d175-4e10-8071-03fdf5969fe2
-# ╠═╡ disabled = true
-#=╠═╡
-# @bind text TextField()
-  ╠═╡ =#
-
-# ╔═╡ b8ec877f-c1ba-42ce-918d-cb05b5b75a3a
-# ╠═╡ disabled = true
-#=╠═╡
-text = "ababccd"
-  ╠═╡ =#
-
 # ╔═╡ fa58c4c6-a287-4292-9062-7c5adabe4fff
 # ╠═╡ disabled = true
 #=╠═╡
 letters = collect(text)
+  ╠═╡ =#
+
+# ╔═╡ b49ecbe4-946d-44ac-beb6-ed972b1e3788
+# ╠═╡ disabled = true
+#=╠═╡
+length(text)
   ╠═╡ =#
 
 # ╔═╡ cf0e9710-c521-4972-91c4-d2beffae9406
@@ -152,10 +146,16 @@ counts = Dict(
 Plots.bar(counts, size = (200,200))
   ╠═╡ =#
 
-# ╔═╡ b49ecbe4-946d-44ac-beb6-ed972b1e3788
+# ╔═╡ 3d917d85-d175-4e10-8071-03fdf5969fe2
 # ╠═╡ disabled = true
 #=╠═╡
-length(text)
+# @bind text TextField()
+  ╠═╡ =#
+
+# ╔═╡ b8ec877f-c1ba-42ce-918d-cb05b5b75a3a
+# ╠═╡ disabled = true
+#=╠═╡
+text = "ababccd"
   ╠═╡ =#
 
 # ╔═╡ 8f29183a-2e36-4479-a688-5036e2cda17e
@@ -588,7 +588,7 @@ function solve(intents, depth::Int, slowdown::Float64; variability=maxVariabilit
 						# chack if the intent can be matched (note the `-r`!)
 						if balance[pool][-r] > 0
 							# if matchable, add the intent to the solution and … 
-							solution[intent] = t
+							solution[intent] = endOfTick
 						    # … adapt the balance (to avoid over-matching) and …
 						    balance[pool][-r] += -1
 							# … remove the intent from the pool (at index j)
@@ -625,9 +625,11 @@ function solve(intents, depth::Int, slowdown::Float64; variability=maxVariabilit
 			end # do solving at depth d (if it is the time to do so)
 		end # cycle through depths
 	end # cycle through ticks
-	let remaining = length(intents) - idx, last = intents[idx]
+	let remaining = length(intents) - idx, last = intents[idx], matched = length(solution)
 		println("Number of remaining intents $remaining")
 		println("last intent was $last");
+		println("number of intents satisfied $matched")
+		println("number of intents processed $idx")
 	end
 	return solution
 end
@@ -636,6 +638,15 @@ end
 aSolution =  solve(theIntents, maxDepth, 1.0)
 
 
+
+# ╔═╡ 6e731d02-f855-4591-9142-2e034a4eb13f
+begin
+	solvingTime = [
+		round(digits=5, aSolution[i]-i[1]) for i in theIntents if haskey(aSolution,i)
+	]
+	Plots.bar(reverse(sort(solvingTime)), size = (800,400);
+				label="distribution of intent solving times")
+end
 
 # ╔═╡ 246b6743-c618-421a-a1b9-74b37da7bc21
 # ╠═╡ disabled = true
@@ -1932,7 +1943,7 @@ version = "1.4.1+1"
 # ╠═c40acdc8-a39c-4486-8887-af47ceaf7d84
 # ╠═1782bc18-864c-4063-beb3-ff9ff2f029f4
 # ╠═51bdce7d-7353-424b-bc54-6965488ab789
-# ╟─0fe2a384-0a8e-4e65-940c-dff0b3a68eb0
+# ╠═0fe2a384-0a8e-4e65-940c-dff0b3a68eb0
 # ╟─c1d2a64d-bfb0-4338-b698-f529f070485f
 # ╠═ae227674-476f-4582-a48a-98c3ee56c8bd
 # ╠═b43d7e58-8e88-4788-a0f0-d3aab9db0e14
@@ -1943,6 +1954,7 @@ version = "1.4.1+1"
 # ╠═57f5209c-389f-4706-afd1-99f9a16686f3
 # ╠═05ebc19a-da0e-44bc-ab2c-7a4427c56df9
 # ╠═8e252851-848c-4a84-9588-5458a673c939
+# ╠═6e731d02-f855-4591-9142-2e034a4eb13f
 # ╠═246b6743-c618-421a-a1b9-74b37da7bc21
 # ╠═3f7e9337-a0fb-47fa-9b74-5ae004cd9038
 # ╟─00000000-0000-0000-0000-000000000001
