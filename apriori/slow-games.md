@@ -17,7 +17,7 @@ There are two actors in the slow game.
 
 The regulator is slower to act than the operator, and in some cases less sophisticated. Critically, the regulator is slower in measuring the operator's actions. This introduces uncertainty depending on the difference in speed between the two actors. 
 
-The Slow game report introduces a framework inspired by lossy compression problems to model this type of game. The report presents results of simulations (empirical analysis) from a minimal example. The report concludes by examining future directions of research including; composition of slow games, operator collusion in slow games, applied modeling for Anoma.
+The Slow game report introduces a framework inspired by lossy compression problems to model this type of game. The report presents results of simulations (empirical analysis) from a minimal example. The report concludes by examining future directions of research including; composition of slow games, operator collusion in slow games, and applied modeling for _Anoma_.
 
 
 ## Conceptual Framework
