@@ -216,7 +216,7 @@ It correlates strongly with how likely intents are matched in the next batch.
 # @bind maxVariability NumberField(1:100)
 
 # ╔═╡ b1e569ef-437c-4629-8b65-25be8fbbb0f8
-maxVariability = 32
+maxVariability = 8
 
 # ╔═╡ 3087847d-a284-4271-bfc6-eb8b66df1f5a
 println("The maximum variability is $maxVariability")
@@ -463,6 +463,7 @@ function poolRange(depth::Int)
 	@assert depth > -1 
 		"No such thing as negative depth!"
 	return 2^depth:2^(depth+1)-1
+	# for depth 0, this is 1:(2-1) = 1:1
 end
 
 # ╔═╡ a723e25b-1efa-4684-bc42-143b65b219ba
@@ -508,9 +509,9 @@ function solve(intents, depth::Int, slowdown::Float64; variability=maxVariabilit
 	# the slowdown must be at least 1.0
 	@assert slowdown >= 1.0
 		"Slowdown must be a factor greater than or equal to one!"
-	# the depth must be strictly positive
-	@assert depth > 0
-		"The depth must be strictly positive."
+	# the depth must be non-negative
+	@assert depth >= 0
+		"The depth must be non-negative."
     # ---
 	# define relevant constants
     # ---
@@ -627,7 +628,7 @@ function solve(intents, depth::Int, slowdown::Float64; variability=maxVariabilit
 		end # cycle through depths
 	end # cycle through ticks
 	let remaining = length(intents) - idx, last = intents[idx], matched = length(solution)
-		println("Number of remaining intents $remaining")
+		println("Number of remaining intents $remaining at depth $depth")
 		println("last intent was $last");
 		println("number of intents satisfied $matched")
 		println("number of intents processed $idx")
@@ -636,16 +637,26 @@ function solve(intents, depth::Int, slowdown::Float64; variability=maxVariabilit
 end
 
 # ╔═╡ 8e252851-848c-4a84-9588-5458a673c939
-aSolution =  solve(theIntents, maxDepth, 1.0)
+someSolutions =  [solve([(t,r,ceil(Int, l/2^(maxDepth-d))) for (t,r,l) in theIntents], d, 1.0) for d in 0:maxDepth]
+
+# ╔═╡ f3b8549f-61d4-4bd6-b83d-eced1446fd1c
+aSolution = someSolutions[1]
 
 # ╔═╡ 6e731d02-f855-4591-9142-2e034a4eb13f
 begin
 	solvingTime = [
-		round(digits=5, aSolution[i]-i[1]) for i in theIntents if haskey(aSolution,i)
+		[round(digits=5, someSolutions[k][i]-i[1]) for i in theIntents if haskey(someSolutions[k],i)] for k in 1:length(someSolutions)
 	]
-	Plots.bar(reverse(sort(solvingTime)), size = (800,400);
-				label="distribution of intent solving times")
+	Plots.bar([reverse(sort(solvingTime[j])) for j in 1:length(someSolutions)], size = (800,400*4);
+				 layout = (length(someSolutions), 1))
 end
+
+# ╔═╡ a10a6ad2-db4b-44b9-b015-c0b8ab4df1db
+md"""
+## Attention : Bug ?!
+
+Something is off about depth 0: it seems to perform too bad: that's more than an order of magnitude, comparing depth 0 and depth 1 !!! 
+"""
 
 # ╔═╡ 246b6743-c618-421a-a1b9-74b37da7bc21
 # ╠═╡ disabled = true
@@ -1953,7 +1964,9 @@ version = "1.4.1+1"
 # ╠═57f5209c-389f-4706-afd1-99f9a16686f3
 # ╠═05ebc19a-da0e-44bc-ab2c-7a4427c56df9
 # ╠═8e252851-848c-4a84-9588-5458a673c939
+# ╠═f3b8549f-61d4-4bd6-b83d-eced1446fd1c
 # ╠═6e731d02-f855-4591-9142-2e034a4eb13f
+# ╠═a10a6ad2-db4b-44b9-b015-c0b8ab4df1db
 # ╠═246b6743-c618-421a-a1b9-74b37da7bc21
 # ╠═3f7e9337-a0fb-47fa-9b74-5ae004cd9038
 # ╟─00000000-0000-0000-0000-000000000001
