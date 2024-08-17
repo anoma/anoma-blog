@@ -30,13 +30,6 @@ using DataStructures
 # for doing beautiful plots
 using Plots
 
-# ╔═╡ 8e3663b3-3459-4e5a-9982-86fceebb98e8
-# ╠═╡ disabled = true
-#=╠═╡
-# for fancy UI
-using PlutoUI
-  ╠═╡ =#
-
 # ╔═╡ 82245b9d-d1f9-46a5-acc3-28b928fa193d
 md"""
 # Hierachical Operator Pools (Implementation Details)
@@ -113,28 +106,29 @@ If for none of these parameters we get utitlity gains realtive to mon-pools,
 we have saved a lot of work going in the wrong direction!
 """
 
+# ╔═╡ 8e3663b3-3459-4e5a-9982-86fceebb98e8
+# ╠═╡ disabled = true
+#=╠═╡
+# for fancy UI
+using PlutoUI
+  ╠═╡ =#
+
 # ╔═╡ 1d878428-07a5-430a-b810-5671b4bc3962
 # ╠═╡ disabled = true
 #=╠═╡
 isvowel(c) = c ∈ "aeiou"
   ╠═╡ =#
 
-# ╔═╡ 3d917d85-d175-4e10-8071-03fdf5969fe2
-# ╠═╡ disabled = true
-#=╠═╡
-# @bind text TextField()
-  ╠═╡ =#
-
-# ╔═╡ b8ec877f-c1ba-42ce-918d-cb05b5b75a3a
-# ╠═╡ disabled = true
-#=╠═╡
-text = "ababccd"
-  ╠═╡ =#
-
 # ╔═╡ fa58c4c6-a287-4292-9062-7c5adabe4fff
 # ╠═╡ disabled = true
 #=╠═╡
 letters = collect(text)
+  ╠═╡ =#
+
+# ╔═╡ b49ecbe4-946d-44ac-beb6-ed972b1e3788
+# ╠═╡ disabled = true
+#=╠═╡
+length(text)
   ╠═╡ =#
 
 # ╔═╡ cf0e9710-c521-4972-91c4-d2beffae9406
@@ -152,10 +146,16 @@ counts = Dict(
 Plots.bar(counts, size = (200,200))
   ╠═╡ =#
 
-# ╔═╡ b49ecbe4-946d-44ac-beb6-ed972b1e3788
+# ╔═╡ 3d917d85-d175-4e10-8071-03fdf5969fe2
 # ╠═╡ disabled = true
 #=╠═╡
-length(text)
+# @bind text TextField()
+  ╠═╡ =#
+
+# ╔═╡ b8ec877f-c1ba-42ce-918d-cb05b5b75a3a
+# ╠═╡ disabled = true
+#=╠═╡
+text = "ababccd"
   ╠═╡ =#
 
 # ╔═╡ 8f29183a-2e36-4479-a688-5036e2cda17e
@@ -216,7 +216,7 @@ It correlates strongly with how likely intents are matched in the next batch.
 # @bind maxVariability NumberField(1:100)
 
 # ╔═╡ b1e569ef-437c-4629-8b65-25be8fbbb0f8
-maxVariability = 8
+maxVariability = 32
 
 # ╔═╡ 3087847d-a284-4271-bfc6-eb8b66df1f5a
 println("The maximum variability is $maxVariability")
@@ -346,7 +346,7 @@ begin
 	# this should be quick, so no more than 1000 samples
 	local theLength = min(1000,length(theIntents)-2);
 	# the precision determines the bucket size, depending on the waiting times
-	local precision = 1+convert(Int64,round(digits=0,log(10,1/expectedWaitingTime)));
+	local precision = 2+convert(Int64,round(digits=0,log(10,1/expectedWaitingTime)));
 	let s = theIntents[1:theLength-1],
 		e = theIntents[2:theLength]
 	in
@@ -601,9 +601,10 @@ function solve(intents, depth::Int, slowdown::Float64; variability=maxVariabilit
 								@assert d > 0 "just in case"
 								# compute "next tick is parent's solving time?"
 								local timeToForward =
-									# next tick is tick+1
+									# TODO think about the height to stop
+									# next tick is ~tick+1~ tick+2^(depth-d)
 									# parent pool is at depth d-1
-									mod(tick+1, 2^(depth-(d-1))) == 0;
+									mod(tick+2^(depth-d), 2^(depth-(d-1))) == 0;
 								# check if we need to forward
 								if timeToForward
 									# forward intent to the parent, i.e.,
@@ -635,9 +636,7 @@ function solve(intents, depth::Int, slowdown::Float64; variability=maxVariabilit
 end
 
 # ╔═╡ 8e252851-848c-4a84-9588-5458a673c939
-aSolution =  solve(theIntents, maxDepth, 10.0)
-
-
+aSolution =  solve(theIntents, maxDepth, 1.0)
 
 # ╔═╡ 6e731d02-f855-4591-9142-2e034a4eb13f
 begin
