@@ -138,10 +138,8 @@ See the paper for more details. View this [repository](https://github.com/anoma/
 From the exploration of the problem space identified in this work, we have a better idea of how to model the slow game - as a lossy compression model - and the subgames being played. Some research directions that arise as a result include the following:
 
 - Composition of slow games - on the Anoma network, operators and regulators maybe internally coordinated in diverse setups that can be modelled as a slow game.
-- Decomposition of the regulator - how can users coordinate amongst each other if the regulator role is distributed amongst users of a specific service who have differing goals. What are the incentive problems that arise, and how do they influence approximation bounds? 
 - Operator collusion in slow games - the potential for operators to coordinate in order to extract value from users to undermine the regulatory mechanisms. 
 - Applied modeling of Anoma - controller selection, solver selection.
-- Transformation into a prior-free mechanism - make the framework more amenable for applications in a dynamic network. 
 
 ## Acknowledgements
 
