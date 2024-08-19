@@ -153,5 +153,5 @@ Thank you to the teams in the industry who are exploring this topic.
 - [Cow Protocol Social Consensus Rules](https://v1.docs.cow.fi/solvers/in-depth-solver-specification/social-consensus-rules)
 - [Osmosis governance stance against off-chain harmful MEV collusion and extraction software](https://commonwealth.im/osmosis/discussion/7812-osmosis-governance-stance-against-offchain-harmful-mev-collusion-and-extraction-software)
 - [Jito Labs suspends mempool Functionality](https://blockworks.co/news/jito-labs-suspends-mempool-functionality)
-- [How I learned to stop worryng and love MEV](https://medium.com/dragonfly-research/dr-reorg-or-how-i-learned-to-stop-worrying-and-love-mev-2ee72b428d1d)
+- [How I learned to stop worrying and love MEV](https://medium.com/dragonfly-research/dr-reorg-or-how-i-learned-to-stop-worrying-and-love-mev-2ee72b428d1d)
 - [The Simple Orderbook Flow (Aori Litepaper)](https://aori-io.notion.site/Aori-A-Litepaper-62f809b5c25c4798ad2c1d48d883e7bd)
