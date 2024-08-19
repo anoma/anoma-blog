@@ -40,7 +40,7 @@ Given the above, the characteristic questions for the slow game:
 
 In the discourse, the term *solver* is often understood as market participants who provide counterparty discovery for user intents ([Davids et al., 2023](https://perridonventures.xyz/publications/redefining-blockchain-interactions-the-crucial-role-of-solvers-in-an-Intent-focussed-future#expandingthescope-newfrontforsolvers)). Another definition could be, solvers are agents who compete to satisfy user orders which may include complicated user specified conditions ([Chitra et al., 2024](https://arxiv.org/html/2403.02525v2)). 
 
-Typically, the term solver is meant to encompass an entity that:
+Typically, the term solver is meant to encompass an entity that performs the following actions:
 
 - Gossips intents
 - Computational search
