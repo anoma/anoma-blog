@@ -6,7 +6,7 @@ image: media/slowgamescover.png
 excerpt: This article is a summary of *Slow Games; Policy Enforcement under Uncertainty*. We explore the slow game by reviewing a conceptual framework, lossy compression model, an example game model, simulations, and future directions. 
 ---
 ## Preface
-This article is a summary based on the Anoma Research Topic titled *Slow Games: Policy Enforcement under Uncertainty* by D Reusche, Christopher Goes and Nicolas Della Penna. All credit to the authors. Thank you to D for feedback and review. Any errors *are* my own.
+This article is a summary based on the Anoma Research Topic titled *Slow Games: Policy Enforcement under Uncertainty* by D Reusche, Christopher Goes and Nicolas Della Penna. All credit to the authors. Thank you to D and Christopher Goes for feedback and review. Any errors *are* my own.
 
 ## Introduction
 The Slow Game is a type of principal-agent problem. The principal-agent problem ([PAP](https://en.wikipedia.org/wiki/Principal%E2%80%93agent_problem)) arises when one entity takes actions on behalf of another entity, where there is a potential conflict of interest. 
