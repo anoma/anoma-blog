@@ -11,6 +11,10 @@ This article is a summary based on the Anoma Research Topic titled *Slow Games: 
 ## Introduction
 The Slow Game is a type of principal-agent problem. The principal-agent problem ([PAP](https://en.wikipedia.org/wiki/Principal%E2%80%93agent_problem)) arises when one entity takes actions on behalf of another entity, where there is a potential conflict of interest. 
 
+In Anoma, examples of slow games include:
+- Solver selection 
+- Controller selection
+
 There are two actors in the slow game. 
 - Operator - operator of a service. This is the agent. 
 - Regulator - attempts to enforce policies of the service being provided by the operator. This is the principal.
