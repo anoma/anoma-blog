@@ -123,7 +123,7 @@ Based on the model we discussed in the prior section, the paper goes onto perfor
 
 **tl;dr:** If we look at how the cheating strategy (conflation) interacts with the measurement error (pure error), we get better information about the operator's deviation from the policy. Empirically, we can create a reward and punishment scheme that incentivises the operator not to cheat across all speed regimes.
 
->To get an intuition for how our example plays out, given the above model and basic incentives, we simulate experiments and perform empirical analysis on it. We run experiments with $D_c = B(10, p_i), p_i \in \{0, 0.1, 0.2, ..., 0.9, 1\}$ with $S = 10000$, $R_b = 40000$, and interpolation replacing missing values with the mean of available data.  {}
+>To get an intuition for how our example plays out, given the above model and basic incentives, we simulate experiments and perform empirical analysis on it. We run experiments with $D_c = B(10, p_i), p_i \in \{0, 0.1, 0.2, ..., 0.9, 1\}$ with $S = 10000$, $R_b = 40000$, and interpolation replacing missing values with the mean of available data. 
 
 ![](media/slowgamesimulations.png)
 
