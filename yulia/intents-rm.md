@@ -1,6 +1,6 @@
 ---
 title: Intents from the resource model perspective
-publish_date: 
+publish_date: 2024-08-21
 category: distributed-systems
 excerpt: In this blogpost we explore what intents are and describe two concrete ways to instantiate them in the resource model.
 image: media/intents-rm.jpeg
