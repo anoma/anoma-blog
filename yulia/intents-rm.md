@@ -14,7 +14,7 @@ We [spent](https://anoma.net/blog/abstract-intent-machines) [some](https://zenod
 In an intent-centric protocol such as Anoma, users initiate chain state changes by submitting their intent to the intent gossip network. Intents are representations of user preferences that constrain the initiated state transition. They are invariant across all possible satisfying state transitions, meaning that no matter what transaction gets constructed, the user’s intent will be satisfied by it. **Solvers** are the actors who receive user intents and match them together, constructing balanced transactions.
 
 
-![image](./media/intents-rm-solving.png)
+![](media/intents-rm-solving.png)
  
 
 ### Constraints and preferences
@@ -25,21 +25,19 @@ Intents have two components: constraints and preferences. **Constraints** corres
 
 > This section provides a quick introduction to the resource model components. To learn more about the resource model, check out [this blogpost](https://anoma.net/blog/rise-of-the-resource-machines).
 
-|Component|Description|
-|-|-|
-|**Resource**|Atomic unit of state in the resource model|
-|**Resource logic**|A predicate associated with each resource. It specifies on which conditions a resource can be created and consumed. Each resource logic belongs to some application|
-|**Resource quantity**|A numeric value associated with a resource. When a resource is being consumed, its quantity is assumed to be positive, and when a resource is being created, the quantity is assumed to be negative|
-|**Resource kind**|Resource's fungibility domain. Computed from the resource's components that include the *resource logic*|
-|**Application**|Virtual structure characterised by its logic and read and write interfaces. Resources associated with the application's logic comprise the application's state|
-|**Transaction**|State update representations. Solvers construct transactions to satisfy users' intents. Transactions can be *balanced* and *unbalanced*|
-|**Transaction balance**|The sum of the quantities of resources consumed and created in this transaction, computed per each resource kind|
-|**Balanced transaction**|A transaction for which for each resource type, the sum of the quantities equals to zero[^1]. Only balanced transactions can be executed|
-|**Unbalanced transaction**|A transaction that isn't balanced 🤷🏻‍♀️. Unbalanced transactions are composed until they balance and then, if valid, they are ordered and executed|
+ - **Resource** : Atomic unit of state in the resource model
+ - **Resource logic** : A predicate associated with each resource. It specifies on which conditions a resource can be created and consumed. Each resource logic belongs to some application
+ - **Resource quantity** : A numeric value associated with a resource. When a resource is being consumed, its quantity is assumed to be positive, and when a resource is being created, the quantity is assumed to be negative
+ - **Resource kind** : Resource's fungibility domain. Computed from the resource's components that include the *resource logic*
+ - **Application** : Virtual structure characterised by its logic and read and write interfaces. Resources associated with the application's logic comprise the application's state
+ - **Transaction** : State update representations. Solvers construct transactions to satisfy users' intents. Transactions can be *balanced* and *unbalanced*
+ - **Transaction balance** : The sum of the quantities of resources consumed and created in this transaction, computed per each resource kind
+ - **Balanced transaction** : A transaction for which for each resource type, the sum of the quantities equals to zero[^1]. Only balanced transactions can be executed
+ - **Unbalanced transaction** : A transaction that isn't balanced 🤷🏻‍♀️. Unbalanced transactions are composed until they balance and then, if valid, they are ordered and executed
 
 On the diagram below the rectangle represents a balanced transaction composed of dotted rectangles (unbalanced transactions). The squares represent resources, grey squares are resources of the same kind. The application's state is updated to autumn: green leaf resources are consumed (positive quantity), orange leaf resources are created (negative quantity). 
 
-![image](./media/intents-rm-autumn.png)
+![](media/intents-rm-autumn.png)
 
 [^1]: the transaction balance is checked against the **balancing value**. For simplicity we can assume the balancing value is set to 0.
 
@@ -63,7 +61,7 @@ When the user knows exactly what they want, they can simply produce an unbalance
 [^6]: balanced transactions correspond to intents that are satisfied (with multiple intents satisfied by the same balanced transaction), unbalanced transactions correspond to intents yet to satisfy.
 
 
-![image](./media/intents-rm-balance.png)
+![](media/intents-rm-balance.png)
 
 ### II. Describe what you want in a predicate
 
