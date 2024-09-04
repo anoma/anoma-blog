@@ -1,6 +1,5 @@
 ---
 title: An Introduction to Intents and Intent-centric Architectures
-publish_date: 2023-09-25T15:10:05.000Z
 category: community
 image: media/Intent_12.jpg
 imageCaption: Evolution of architectures and the diversity of dApps they enable

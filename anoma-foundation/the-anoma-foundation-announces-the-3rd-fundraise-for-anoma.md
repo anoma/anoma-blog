@@ -1,6 +1,5 @@
 ---
 title: The Anoma Foundation Announces the 3rd Fundraise for Anoma
-publish_date: 2023-05-31T13:03:44.000Z
 category: ecosystem
 image: media/ECOSYSTEM-EXPLORE6.jpg
 excerpt: Anoma is the first ever intent-centric architecture, introducing a new paradigm for building infrastructure layers and a new operating system for decentralized applications. The Anoma Foundation is thrilled to announce the completion of the 3rd round for Anoma – raising a total of USD 25M.
