@@ -153,14 +153,6 @@ From the exploration of the problem space identified in this work, we have a bet
     - discretization error - simplifications made in modeling continuous processes or states as discrete ones, which can introduce prediction.
   - Agent regret depends on the complexity of the utility functions. 
 
-This is particularly relevant for slow games, where the regulator's limited information is a key challenge. A prior-free mechanism could help address issues like: 
-- Uncertainty about the operator's actions or strategies 
-- Changes in the environment or participant behavior over time 
-- The need for more robust and adaptive regulatory approaches Recent research (Camara et al., 2020) provides theoretical bounds on how well such mechanisms can perform. These bounds consider factors like: 
-	- The value that operators might extract from the system 
-	- The costs of making the mechanism robust to different scenarios 
-	- Errors in predicting future states or behaviors 
-
 ## Acknowledgements
 
 From the paper:
