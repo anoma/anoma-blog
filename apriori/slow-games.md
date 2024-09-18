@@ -145,10 +145,21 @@ From the exploration of the problem space identified in this work, we have a bet
 - Operator collusion in slow games - the potential for operators to coordinate in order to extract value from users to undermine the regulatory mechanisms. 
 - Applied modeling of Anoma - controller selection, solver selection.
 - Empirical pipeline - an empirical pipeline that can help inform decision making for users in practice. 
-- Transformation into a prior-free mechanism - this mechanism would not depend on any assumed prior knowledge about the environment or behavior of the participants. Instead, the mechanism learns and adapts based on observations.
-  - In particular, [Theorem 3](https://arxiv.org/pdf/2009.05518) from *Mechanisms for a No-Regret Agent: Beyond the Common Prior* by Camara, Hartline, and Johnsen, gives an upper bound for the principal's (user) regret in their setting. This should provide an "upper" upper bound for extractable value as well, modulo some caveates: (a) extractable value should only be part of the principal's regret, (b) the rest is the agent's regret; e.g. friction in different places.
-  - Additional components of the principal's regret include forecast miscalibration, cost of informational robustness, and discretization error. Agent regret  depends on the complexity of the utility functions, which depend on TX ordering and available computational resources for example. 
+- Transformation into a prior-free mechanism - this mechanism would not depend on any assumed prior knowledge about the environment or behavior of the participants. Instead, the mechanism learns and adapts based on observations. This is particularly relevant for slow games, where the regulator's limited information is a challenge. In particular, [Theorem 3](https://arxiv.org/pdf/2009.05518) from *Mechanisms for a No-Regret Agent: Beyond the Common Prior* by Camara, Hartline, and Johnsen, gives an upper bound for the principal's (user) regret in their setting. 
+  - Components of the principal's regret include:
+    - extractable value - value that operators may extract from the system.
+    - forecast miscalibration - errors in predicting future states or behaviors in the system.
+    - cost of informational robustness - the costs of making the mechanism robust to different scenarios.  
+    - discretization error - simplifications made in modeling continuous processes or states as discrete ones, which can introduce prediction.
+  - Agent regret depends on the complexity of the utility functions. 
 
+This is particularly relevant for slow games, where the regulator's limited information is a key challenge. A prior-free mechanism could help address issues like: 
+- Uncertainty about the operator's actions or strategies 
+- Changes in the environment or participant behavior over time 
+- The need for more robust and adaptive regulatory approaches Recent research (Camara et al., 2020) provides theoretical bounds on how well such mechanisms can perform. These bounds consider factors like: 
+	- The value that operators might extract from the system 
+	- The costs of making the mechanism robust to different scenarios 
+	- Errors in predicting future states or behaviors 
 
 ## Acknowledgements
 
