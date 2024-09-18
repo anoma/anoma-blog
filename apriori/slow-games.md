@@ -146,7 +146,7 @@ From the exploration of the problem space identified in this work, we have a bet
 - Applied modeling of Anoma - controller selection, solver selection.
 - Empirical pipeline - an empirical pipeline that can help inform decision making for users in practice. 
 - Transformation into a prior-free mechanism - this mechanism would not depend on any assumed prior knowledge about the environment or behavior of the participants. Instead, the mechanism learns and adapts based on observations.
-  - In particular, [Theorem 3](https://arxiv.org/pdf/2009.05518)vfrom *Mechanisms for a No-Regret Agent: Beyond the Common Prior* by Camara, Hartline, and Johnsen, gives an upper bound for the principal's (user) regret in their setting. This should provide an "upper" upper bound for extractable value as well, modulo some caveates: (a) extractable value should only be part of the principal's regret, (b) the rest is the agent's regret; e.g. friction in different places.
+  - In particular, [Theorem 3](https://arxiv.org/pdf/2009.05518) from *Mechanisms for a No-Regret Agent: Beyond the Common Prior* by Camara, Hartline, and Johnsen, gives an upper bound for the principal's (user) regret in their setting. This should provide an "upper" upper bound for extractable value as well, modulo some caveates: (a) extractable value should only be part of the principal's regret, (b) the rest is the agent's regret; e.g. friction in different places.
   - Additional components of the principal's regret include forecast miscalibration, cost of informational robustness, and discretization error. Agent regret  depends on the complexity of the utility functions, which depend on TX ordering and available computational resources for example. 
 
 
