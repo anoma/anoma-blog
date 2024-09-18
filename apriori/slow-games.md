@@ -145,7 +145,7 @@ From the exploration of the problem space identified in this work, we have a bet
 - Operator collusion in slow games - the potential for operators to coordinate in order to extract value from users to undermine the regulatory mechanisms. 
 - Applied modeling of Anoma - controller selection, solver selection.
 - Empirical pipeline - an empirical pipeline that can help inform decision making for users in practice. 
-- Transformation into a prior-free mechanism - this mechanism would not depend on any assumed prior knowledge about the environment or behavior of the participants. Instead, the mechanism learns and adapts based on observations. This is particularly relevant for slow games, where the regulator's limited information is a challenge. In particular, [Theorem 3](https://arxiv.org/pdf/2009.05518) from *Mechanisms for a No-Regret Agent: Beyond the Common Prior* by Camara, Hartline, and Johnsen, gives an upper bound for the principal's (user) regret in their setting. 
+- Transformation into a prior-free mechanism - this mechanism would not depend on any assumed prior knowledge about the environment or behavior of the participants. Instead, the mechanism learns and adapts based on observations. This is particularly relevant for slow games, where the regulator's limited information is a challenge. In particular, [Theorem 3](https://arxiv.org/pdf/2009.05518) from *Mechanisms for a No-Regret Agent: Beyond the Common Prior* (Camara, et al. 2020) gives an upper bound for the principal's regret in their setting. 
   - Components of the principal's regret include:
     - extractable value - value that operators may extract from the system.
     - forecast miscalibration - errors in predicting future states or behaviors in the system.
