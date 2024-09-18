@@ -142,8 +142,7 @@ See the paper, [*Slow Games: Policy Enforcement under Uncertainty*](https://zeno
 From the exploration of the problem space identified in this work, we have a better idea of how to model the slow game - as a lossy compression model - and the subgames being played. Some research directions that arise as a result include the following:
 
 - **Composition of slow games** - on the Anoma network, operators and regulators maybe internally coordinated in diverse setups that can be modelled as a slow game.
-- **Decomposition of a regulator** - how can users of a service with a partial view of the outcomes produced by that service coordinate amongst each other?
-  - What incentive problems exist and how does this impact approximation bounds?
+- **Decomposition of a regulator** - how can users of a service with a partial view of the outcomes produced by that service coordinate amongst each other? 
 - **Operator collusion in slow games** - the potential for operators to coordinate in order to extract value from users to undermine the regulatory mechanisms. 
 - **Applied modeling of Anoma** - controller selection, solver selection.
 - **Empirical pipeline** - an empirical pipeline that can help inform decision making for users in practice. 
