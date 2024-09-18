@@ -141,11 +141,13 @@ See the paper, [*Slow Games: Policy Enforcement under Uncertainty*](https://zeno
 
 From the exploration of the problem space identified in this work, we have a better idea of how to model the slow game - as a lossy compression model - and the subgames being played. Some research directions that arise as a result include the following:
 
-- Composition of slow games - on the Anoma network, operators and regulators maybe internally coordinated in diverse setups that can be modelled as a slow game.
-- Operator collusion in slow games - the potential for operators to coordinate in order to extract value from users to undermine the regulatory mechanisms. 
-- Applied modeling of Anoma - controller selection, solver selection.
-- Empirical pipeline - an empirical pipeline that can help inform decision making for users in practice. 
-- Transformation into a prior-free mechanism - this mechanism would not depend on any assumed prior knowledge about the environment or behavior of the participants. Instead, the mechanism learns and adapts based on observations. This is particularly relevant for slow games, where the regulator's limited information is a challenge. In particular, [Theorem 3](https://arxiv.org/pdf/2009.05518) from *Mechanisms for a No-Regret Agent: Beyond the Common Prior* (Camara, et al. 2020) gives an upper bound for the principal's regret in their setting. 
+- **Composition of slow games** - on the Anoma network, operators and regulators maybe internally coordinated in diverse setups that can be modelled as a slow game.
+- **Decomposition of a regulator** - how can users of a service with a partial view of the outcomes produced by that service coordinate amongst each other?
+  - What incentive problems exist and how does this impact approximation bounds?
+- **Operator collusion in slow games** - the potential for operators to coordinate in order to extract value from users to undermine the regulatory mechanisms. 
+- **Applied modeling of Anoma** - controller selection, solver selection.
+- **Empirical pipeline** - an empirical pipeline that can help inform decision making for users in practice. 
+- **Transformation into a prior-free mechanism** - this mechanism would not depend on any assumed prior knowledge about the environment or behavior of the participants. Instead, the mechanism learns and adapts based on observations. This is particularly relevant for slow games, where the regulator's limited information is a challenge. In particular, [Theorem 3](https://arxiv.org/pdf/2009.05518) from *Mechanisms for a No-Regret Agent: Beyond the Common Prior* (Camara, et al. 2020) gives an upper bound for the principal's regret in their setting. 
   - Components of the principal's regret include:
     - extractable value - value that operators may extract from the system.
     - forecast miscalibration - errors in predicting future states or behaviors in the system.
