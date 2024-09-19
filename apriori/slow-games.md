@@ -152,8 +152,7 @@ From the exploration of the problem space identified in this work, we have a bet
     - extractable value - value that operators may extract from the system.
     - forecast miscalibration - errors in predicting future states or behaviors in the system.
     - cost of informational robustness - the costs of making the mechanism robust to different scenarios.  
-    - discretization error - simplifications made in modeling continuous processes or states as discrete ones, which can introduce prediction.
-
+    - discretization error - stems from simplifications made in modeling continuous processes or states as discrete ones.
 
 ## Acknowledgements
 
