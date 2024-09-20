@@ -1,7 +1,7 @@
 ---
 title: Slow Games
-category: distributed systems
-publish_date: 2024-09-18
+category: distributed-systems
+publish_date: 2024-09-20
 image: media/slowgamescover.png
 excerpt: This article is a summary of *Slow Games; Policy Enforcement under Uncertainty*. We explore the slow game by reviewing a conceptual framework, lossy compression model, an example game model, simulations, and future directions. 
 ---
