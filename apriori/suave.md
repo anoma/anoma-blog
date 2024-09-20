@@ -386,7 +386,7 @@ There are many possibilities for SUAPPs. We will table a full discussion for for
 ### Other Stuff
 
 - [Private Voting](https://research.aragon.org/nouns-tech.html) - enabled by cheap compute and privacy.
-- [Blob Merging](Blob Merging) - EIP-[4844](https://eips.ethereum.org/EIPS/eip-4844) rollups pay per blob, possible to share blob space.
+- Blob Merging with EIP-[4844](https://eips.ethereum.org/EIPS/eip-4844) - rollups pay per blob, possible to share blob space.
 - [Walrasian Auctions](https://en.wikipedia.org/wiki/Walrasian_auction) - an auction type that perfectly matches supply & demand.
 
 ### Real Word Auctions (RWAs)
