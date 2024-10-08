@@ -1,10 +1,9 @@
 ---
-title: Why Anoma
+title: Anoma in Elixir
 publish_date: 2024-10-08
 category: ecosystem
-image:
-excerpt: Anoma is a decentralized operating system with heterogeneous
-trust. For developing Anoma we've been using Elixir. This choice is somewhat unconventional, and thus begs the question "why write Anoma in Elixir!?"
+image: media/DistOpFuture.png
+excerpt: Anoma is a decentralized operating system with heterogeneous trust. For developing Anoma we've been using Elixir. This choice is somewhat unconventional, and thus begs the question "why write Anoma in Elixir!?"
 
 ---
 
