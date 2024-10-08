@@ -1,9 +1,10 @@
 ---
 title: Why Anoma
-publish_date:
-category:
+publish_date: 2024-10-08
+category: ecosystem
 image:
-excerpt:
+excerpt: Anoma is a decentralized operating system with heterogeneous
+trust. For developing Anoma we've been using Elixir. This choice is somewhat unconventional, and thus begs the question "why write Anoma in Elixir!?"
 
 ---
 
@@ -65,7 +66,7 @@ architecture of how the components of Anoma fit together, I can ask
 the underlying system, "please give me the layout of processes for my
 application":
 
-![img](https://pomf2.lain.la/f/wqg712cm.png)
+![img](media/observer-1.png)
 
 The specifics of the diagram doesn't matter. What does matter is that
 the system can reflect on itself, helping to explain the very system
@@ -78,7 +79,7 @@ drill down and ask it more questions. For example what if we were
 curious about one of those nodes in the diagram, what information can
 we get from there?:
 
-![img](https://pomf2.lain.la/f/g7qh05h8.png)
+![img](media/observer-2.png)
 
 As we can see, we now have diagnostics on the particular node along
 with information about it's **state**, **stack trace**, etc.

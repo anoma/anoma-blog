@@ -49,20 +49,20 @@ architecture of how the components of Anoma fit together, I can ask
 the underlying system, "please give me the layout of processes for my
 application":
 
-https://pomf2.lain.la/f/wqg712cm.png
+[[file:media/observer-1.png]]
 
 The specifics of the diagram doesn't matter. What does matter is that
 the system can reflect on itself, helping to explain the very system
 that we are building. Meaning, that the system we are building can be
 in dialog with the builders to shape discussion around itself. No
-longer is the system simply speculated about from the hazy 
+longer is the system simply speculated about from the hazy
 recollections that the engineers who made it have. A great upshot of
 this is that if we have further questions about the system, we can
 drill down and ask it more questions. For example what if we were
 curious about one of those nodes in the diagram, what information can
 we get from there?:
 
-https://pomf2.lain.la/f/g7qh05h8.png
+[[file:media/observer-2.png]]
 
 As we can see, we now have diagnostics on the particular node along
 with information about it's *state*, *stack trace*, etc.
@@ -125,7 +125,7 @@ software errors]], lays out their problem domain:
 7. The system should be in continuous operation for many years.
 8. Software maintenance should be performed without stopping the
    system.
-9. There are stringet quality and reliability requirements
+9. There are stringent quality and reliability requirements
 10. Fault tolerance both to hardware failures, and software errors,
     must be provided.
 
@@ -157,7 +157,7 @@ To give a sample of the features the system has:
    of this at play on their real systems!
 4. Processes are managed by a chain of [[https://www.erlang.org/doc/apps/stdlib/supervisor.html][supervisors]].
    - Supervisors are interesting in that they look after many
-     processes (some of who may be supervisors). When a process they
+     processes (some of whom may be supervisors). When a process they
      are supervising crashes, they have policies on what happens to
      the other processes under their control.
    - It was realized that actors on their own are not enough to make a
@@ -173,7 +173,7 @@ To give a sample of the features the system has:
        resume normal behavior.
      + Further since parts of the system being down can be normal, one
        typically thinks out a robust supervision system that lets the
-       system gracefully degrade. A common example is having a full
+       system gracefully degrades. A common example is having a full
        fledged system that does all the bells and whistles, however
        when some external service is down (say you query an external
        service for images or AI responses), then we can fall back on
