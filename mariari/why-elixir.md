@@ -1,7 +1,7 @@
 ---
 title: Anoma in Elixir
-publish_date: 2024-10-08
 category: ecosystem
+publish_date: 2024-10-08
 image: media/DistOpFuture.png
 excerpt: This article explains why Anoma is built using the Elixir programming language.
 
