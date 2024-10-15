@@ -67,7 +67,7 @@ When the user knows exactly what they want, they can simply produce an unbalance
 
 In the case a user doesn't know *exactly* what they want[^3] but only know some properties of the desired asset, they can specify the constraints in a resource logic[^7] associated with some of the involved in the transaction resources.
 
-An application might include some constraint enforcement logic as a part of its own logic (for example, [this scale-free kudos application implementation](https://github.com/anoma/anoma-app-patterns/blob/main/Token/Transaction/Swap.juvix) allows expressing some forms of intents) or it can be used in combination with a "carrier" application that serves as a way to express intents. A logic of such a carrier application states that its resource can be consumed iff the intent predicate it carries is satisfied. The user would create a carrier resource as a part of their initial transaction. Having the carrier resource consumed in the transaction proves that the intent was satisfied.
+An application might include some constraint enforcement logic as a part of its own logic (for example, [this scale-free kudos application implementation](https://github.com/anoma/anoma-app-lib/blob/v0.5.0/Intent/Swap/Resource.juvix) allows expressing some forms of intents) or it can be used in combination with a "carrier" application that serves as a way to express intents. A logic of such a carrier application states that its resource can be consumed iff the intent predicate it carries is satisfied. The user would create a carrier resource as a part of their initial transaction. Having the carrier resource consumed in the transaction proves that the intent was satisfied.
 
 ### Comparison
 
