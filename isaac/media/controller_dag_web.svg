@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="68.939mm" height="32.367mm" version="1.1" viewBox="0 0 68.939 32.367" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker id="Triangle" overflow="visible" markerHeight="0.50099999" markerWidth="0.50099999" orient="auto-start-reverse" preserveAspectRatio="xMidYMid" viewBox="0 0 1 1">
+   <path transform="scale(.5)" d="m5.77 0-8.65 5v-10z" fill="context-stroke" fill-rule="evenodd" stroke="context-stroke" stroke-width="1pt"/>
+  </marker>
+ </defs>
+ <g transform="translate(-61.259 -111.18)">
+  <rect x="61.259" y="111.18" width="68.939" height="32.367" fill="#fff"/>
+  <text x="63.56102" y="118.82057" fill="#ffffff" font-family="sans-serif" font-size="5.6444px" stroke-dasharray="0.939001, 0.939001" stroke-width=".939" xml:space="preserve"><tspan x="63.56102" y="118.82057" fill="#000000" stroke-width=".939">A@0</tspan></text>
+  <g fill="#000000" font-family="sans-serif" font-size="5.6444px" stroke-dasharray="0.939001, 0.939001" stroke-width=".939">
+   <text x="87.674713" y="118.98193" xml:space="preserve"><tspan x="87.674713" y="118.98193" stroke-width=".939">B@2</tspan></text>
+   <text x="114.07421" y="128.82425" xml:space="preserve"><tspan x="114.07421" y="128.82425" stroke-width=".939">D@8</tspan></text>
+   <text x="88.212547" y="137.86522" xml:space="preserve"><tspan x="88.212547" y="137.86522" stroke-width=".939">C@6</tspan></text>
+   <text x="63.232933" y="138.2175" xml:space="preserve"><tspan x="63.232933" y="138.2175" stroke-width=".939">A@3</tspan></text>
+  </g>
+  <g stroke="#000" stroke-width="1.739">
+   <path d="m77.168 117.22h7.3145" marker-end="url(#Triangle)"/>
+   <path d="m77.168 136.42h7.3145" marker-end="url(#Triangle)"/>
+   <path d="m102.95 133.49 7.3145-4.023" marker-end="url(#Triangle)"/>
+   <path d="m102.04 118.75 7.3145 4.023" marker-end="url(#Triangle)"/>
+  </g>
+ </g>
+</svg>
