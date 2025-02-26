@@ -1,24 +1,24 @@
-println("Hello!")
 
-
+# the maximal depth of mempool hierarchies
 maxDepth=5
 println("Set maximal depth of hierarchies 'maxDepth' is ", maxDepth, ".")
 
+# the number of locations at which new intents are collected
 locations = 2^maxDepth
 println("The number of locations 'locations' is ", locations, ".")
 
+# the number of rounds of solving batch auctions at the global pool
 rounds = 5
-
 println("The number of rounds of solving 'rounds' is ", rounds, ".")
 
+
+# the number of different kinds of resources
 maxVariability = 8
 println("The maximum variability of intents 'maxVariability' is ", maxVariability)
-
 
 using DataStructures
 # an empty list of the required type: time, resource +/-, location
 theMutableIntentsList = MutableLinkedList{Tuple{Float64, Int64, Int64}}()
-
 
 expectedWaitingTime = 1 / (rounds * locations * maxVariability * 4)
 print("expectedWaitingTime ", expectedWaitingTime)
@@ -27,55 +27,6 @@ using Distributions
 intentsWaitingTimes = Distributions.Exponential{Float64}(expectedWaitingTime)
 
 using Random
-
-begin
-# ---
-	# preparations
-	# ---
-	# reset the intents list (just in case)
-	if !isempty(theMutableIntentsList)
-		let theLenght = length(theMutableIntentsList)
-		in 
-			println("Note that we already had a list of length $theLenght‌!");
-			print("new ")
-		end
-		while !isempty(theMutableIntentsList)
-			pop!(theMutableIntentsList)
-		end
-	end
-	# which ressources are we considering?
-	local candidateArray = union(-maxVariability:-1, 1:maxVariability)
-	# initialize local sum of waiting times for new intents, i.e., the time we have to wait for the first intent to arrive
-	local localsum = Random.rand(intentsWaitingTimes);
-	# as long as we do not reach the end of the experiment (at time unit 1)
-	while (localsum < 1)
-		# randomly generate supply or demand for a random resource
-		nextV = Random.rand(candidateArray)
-		# generate next intent ... 
-		let newIntent = (localsum, nextV, Random.rand(1:locations))
-			# ... and push it to the list (at the end)
-			push!(theMutableIntentsList, newIntent)
-		end
-		# update sum of the waiting times 
-		localsum += Random.rand(intentsWaitingTimes);
-		# ☝️ this is the arrival time of the *next* intent (if not too late)
-	end
-	# some "debug" printing
-	local theLength = length(theMutableIntentsList)
-	local thePeek = (getindex(theMutableIntentsList, div(theLength, 2)-1),
-					getindex(theMutableIntentsList, div(theLength, 2)),
-					getindex(theMutableIntentsList, div(theLength, 2)+1))
-	println("intents created: $theLength \n‌and the first, median three, and last:\n");
-	println("Intent #1 is $(theMutableIntentsList[1])")
-	for i in eachindex(thePeek)
-		let index = i + (div(theLength, 2)-2)
-		in 
-		println("Intent #$index is $(thePeek[i])")
-		end
-	end
-	println("Intent #theLength is $(theMutableIntentsList[theLength])")
-
-end
 
 theIntents = collect(theMutableIntentsList)
 
@@ -308,10 +259,18 @@ end
 
 ########################
 
+
+# an intent is issued at a specific point in time, 
+struct Intent 
+    time :: Float64
+    resource :: Int
+    location :: UInt
+end
+
 # return a list of indices of matched intents for a current pool contents
 function slowSolve(contents)
     local res = MutableLinkedList{Tuple{Int64}}()
-    local balance = Dict(a => 0 for a in -variabiity:variability)
+    local balance = Dict(a => 0 for a in -maxVariability:maxVariability)
     for intent in contents
         local (_, r, _) = intent
         balance[r] = balance[r]+1
@@ -325,7 +284,7 @@ function slowSolve(contents)
     end
 
     # begin debug 
-    local balancecheck = Dict(a => 0 for a in 1:variability)
+    local balancecheck = Dict(a => 0 for a in 1:maxVariability)
     for i in res     
         local (_, r, _) = contents[i]
         if r > 0
@@ -335,70 +294,139 @@ function slowSolve(contents)
             balancecheck[r] = balancecheck[r]-1
         end
     end
-    for a in 1:variability
+    for a in 1:maxVariability
         @assert balancecheck[a] == 0 "no matching at all"
     end
     # end debug 
 end
 
-struct Intent 
-    time :: Float64
-    resource :: Int
-    location :: UInt
-    Intent(t,r,l)
-end
 
-function generateIntents(maxVariability::UInt, intentsWaitingTimes::Float64)
+# `generateIntents`: a function to generate intents
+# parameters are
+# - `maxVariability`: the number of different resources
+# - `meanIntentWaitingTime`: the mean waiting time between intents
+function generateIntents(maxVariability::UInt8, meanIntentWaitingTime::Float16)::Vector{Intent}
+    # generate the list of resource offers/requests to sample from
+    local orderTypes = union(-maxVariability:-1, 1:maxVariability)
+
+    # We use exponentially distributed waiting times for intents
+    local dist = Exponential(meanIntentWaitingTime)
+
+    # a fresh empty list of intents
     local theMutableIntentsList = MutableLinkedList{Intent}()
-    # which ressources are we considering?
-    local candidateArray = union(-maxVariability:-1, 1:maxVariability)
-    # initialize local sum of waiting times for new intents, i.e., the time we have to wait for the first intent to arrive
-    local localsum = Random.rand(intentsWaitingTimes);
+
+    # initialize the local sum of waiting times for new intents
+    # (i.e., the time that passes until the first intent will arrive)
+    local localsum = 0;
     # as long as we do not reach the end of the experiment (at time unit 1)
     while (localsum < 1)
-    # randomly generate supply or demand for a random resource
-    local nextV = Random.rand(candidateArray)
-    # generate next intent ... 
-        let newIntent = (localsum, nextV, Random.rand(1:locations))
-            # ... and push it to the list (at the end)
+        # randomly generate supply or demand for a random resource
+        local nextV = Random.rand(orderTypes)
+        local nextLoc = Random.rand(1:locations)
+        # generate next intent ... 
+        let newIntent = Intent(localsum, nextV, UInt(nextLoc))
+        # ... and push it to the list (at the end)
             push!(theMutableIntentsList, newIntent)
         end
-            # update sum of the waiting times 
-            localsum += Random.rand(intentsWaitingTimes);
-            # ☝️ this is the arrival time of the *next* intent (if not too late)
-        end
-        # some "debug" printing
-        local theLength = length(theMutableIntentsList)
-        local thePeek = (getindex(theMutableIntentsList, div(theLength, 2)-1),
+        # update sum of the waiting times 
+        localsum += Random.rand(dist);
+        # ☝️ this is the arrival time of the *next* intent (or something ≥ 1)
+    end
+    # some "debug" printing
+    local theLength = length(theMutableIntentsList)
+    local thePeek = (getindex(theMutableIntentsList, div(theLength, 2)-1),
                         getindex(theMutableIntentsList, div(theLength, 2)),
                         getindex(theMutableIntentsList, div(theLength, 2)+1))
-        println("intents created: $theLength \n‌and the first, median three, and last:\n");
-        println("Intent #1 is $(theMutableIntentsList[1])")
-        for i in eachindex(thePeek)
-            let index = i + (div(theLength, 2)-2)
-            in 
+    println("intents created: $theLength \n‌and the first, median three, and last:\n");
+    println("Intent #1 is $(theMutableIntentsList[1])")
+    for i in eachindex(thePeek)
+        let index = i + (div(theLength, 2)-2)
             println("Intent #$index is $(thePeek[i])")
-            end
         end
-        println("Intent #theLength is $(theMutableIntentsList[theLength])")
-    
     end
+    println("Intent #theLength is $(theMutableIntentsList[theLength])")
+    return collect(theMutableIntentsList)
+end
     
+# this is a global variable: that's OK, because it is one experiment at a time
+intentsForMatching = generateIntents(convert(UInt8,16), convert(Float16,0.1))
+println("We have generated ", length(intentsForMatching), " intents.")
 
+# each pool 
 mutable struct Pool
     contents::MutableLinkedList{Intent}
-    parent::Pool
-    leaf::Bool
+    depth::UInt8
     nextTime::Float64
-    Pool(c) = (x = new(); x.parent = x; x.contents = c; x.leaf=false)
-    Pool(c,p,l) = (x = new(); x.parent = p; x.contents = c; x.leaf=l)
+    interval::Float64
+    parent::Pool
+    Pool(c::MutableLinkedList{Intent}, d::UInt8, t::Float64, p::Pool) =
+         new(c,d,t,t,p)
+    Pool(c::MutableLinkedList{Intent}, d::UInt8, t::Float64) =
+         (x = new(c,d,t,t); x.parent = x)
+end
+
+# generate a hiearchy of pools
+# - depth is the depth of the binary tree
+# - tick is the solving time of leaf pool
+function generatePools(depth::UInt8,tick::Float64)::Vector{Pool}
+    local res = MutableLinkedList{Pool}()
+    for d in 0:depth
+        local next::Float64 = tick*2^(depth-d)
+        for _ in 1:(2^d)
+            let c = MutableLinkedList{Intent}()
+                if d == 0
+                    push!(res,Pool(c, convert(UInt8, d), next))
+                else
+                    @assert d > 0 
+                    let parentIndex = (length(res)+1) ÷ 2
+                        push!(res,Pool(c,convert(UInt8, d),next,res[parentIndex]))
+                    end
+                end
+            end
+        end
+    end
+    # begin debug
+    for i in 2:length(res)
+        local pool = res[i]
+        @assert pool.depth == 1+pool.parent.depth "depth messed up"
+        @assert 2*pool.nextTime == pool.parent.nextTime "solving time messed up"        
+        @assert 2*pool.interval == pool.parent.interval "interval time messed up"
+    end
+    # end debug
+    collect(res)
+end
+
+pools = generatePools(0x04,Float64(1.0))
+println("we have generated ", length(pools), " pools.")
+for pool in 1:length(pools)
+    println("pool ", pool, " is ", pools[pool])
+end
+
+leafPools = pools |> filter(p -> p.depth == pools[length(pools)].depth)
+
+print("we have ", length(leafPools), "leaf pools")
+
+# put order to leaves
+function putOrders(leaves, intents, routing)
+    local deadline = leaves[1].nextTime
+    local first = deadline-leaves[1].interval
+    local relevant = intents |> filter(i::Intent -> i.time >= first && i.time < deadline)
+    for i in relevant
+        let j = routing(i.location)
+            pushfirst!(leaves[j],i)
+        end
+    end
 end
 
 # return a list of indices of matched intents for a current pool contents
 function solvePool(pool::Pool)
-    local contents::LinkedList{Intent} = collect(pool.contents)
-    local res = MutableLinkedList{Tuple{Int64}}()
-    local balance = Dict(a => 0 for a in -variabiity:variability)
+    # the contents of solving
+    local contents::Vector{Intent} = collect(pool.contents)
+    # the indices of matched intents (to be deleted)
+    local indices = MutableLinkedList{Tuple{Int64}}()
+    # the new solutions
+    local solution = Dict()
+    local balance = Dict(a => 0 for a in -maxVariability:maxVariability)
     for intent in contents
         local r = intent.resource
         balance[r] = balance[r]+1
@@ -407,13 +435,13 @@ function solvePool(pool::Pool)
         local r = (contents[i]).resource
         if balance[-r] > 0
             balance[-r] = balance[-r]-1
-            push!(res, i)
+            push!(indices, i)
         end
     end
 
     # begin debug 
     local balancecheck = Dict(a => 0 for a in 1:variability)
-    for i in res     
+    for i in indices     
         local r = (contents[i]).resource
         if r > 0
             balancecheck[r] = balancecheck[r]+1
@@ -425,5 +453,51 @@ function solvePool(pool::Pool)
     for a in 1:variability
         @assert balancecheck[a] == 0 "no matching at all"
     end
-    # end debug 
+    for j in 2:length(indices)
+        @assert indices[j-1] < indices
+    end
+    # end debug
+
+    # extend solution and remove the matched intents
+    
+    for i in reverse(indices)
+        let intent = pool.contents[i]
+            solution[intent] = (pool.nextTime, pool.depth)
+        end
+        delete!(pool.contents, i)
+    end
+
+    # update next time
+    pool.nextTime = pool.nextTime + pool.interval
+
+    # check if we need to propagate the remaining contents
+    if pool.depth > 0 
+        if pool.parent.nextTime <= pool.nextTime
+            append!(pool.contents, pool.parent.contents)
+            pool.parent.contents = pool.contents
+            pool.contents = MutableLinkedList{Intent}()
+        else
+            # nothing to do but wait
+        end
+    end
+    return solution
+end
+
+# now the main loop
+
+begin
+    local theSolution = Dict()
+    local theTime = 0
+    local maxTime = last(intentsForMatching).time
+    local rout = Dict(loc => loc for loc in 1:locations)
+    print("the time $theTime")
+    while (theTime <= maxTime)
+        theTime = theTime + (last(leafPools).nextTime)
+        putOrders(leafPools, theIntents, rout)
+        for p in reverse(pools)
+            let solution = solvePool(p)
+                merge!(theSolution, solution)
+            end
+        end
+    end
 end
