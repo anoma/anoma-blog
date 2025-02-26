@@ -251,12 +251,14 @@ function solvePool(pool::Pool)
     return solution
 end
 
-# now the main loop
+# a whole solving process
 
-begin
+function solving(leafPools)
     local theSolution = Dict()
     local theTime = 0
     local maxTime = last(intentsForMatching).time
+    @assert locations >= length(leafPools) "too many pools"
+
     local rout::Dict{UInt8,UInt8} = Dict(loc => loc for loc in 1:locations)
     println("the time is $theTime and maxTime is $maxTime")
     while (theTime <= maxTime)
@@ -272,4 +274,7 @@ begin
         println("time after solving is $theTime")
     end
     println("We have solved ", length(theSolution), " intents.")
+    return theSolution
 end
+
+solving(leafPools)
