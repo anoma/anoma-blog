@@ -270,8 +270,21 @@ end
 
 # main loop
 begin
-    local intentsForMatching::Vector{Intent} = 
-        generateIntents(convert(Int8, maxVariability), convert(Float16, 0.01))
+    local expectedWaitingTime::Float16 = 0.001
+    local theIntents::Vector{Intent} = 
+        generateIntents(convert(Int8, maxVariability), expectedWaitingTime)
+
+        # this should be quick, so no more than 1000 samples
+        local theLength = min(1000,length(theIntents)-2);
+        # the precision determines the bucket size, depending on the waiting times
+        local precision = 10+convert(Int64,round(digits=6,log(10,1/expectedWaitingTime)));
+        local diffs
+        let s = theIntents[1:theLength-1], e = theIntents[2:theLength]
+            diffs = [y.time-x.time for (x,y) in zip(s,e)]
+            diffs = map(x -> round(digits=precision, x), diffs);
+                display(Plots.bar(reverse(sort(diffs)), size = (800,400);
+                    label="occurrence numbers for waiting times for the next intent"))
+        end
     for depth in 0:maxDepth
         local pools = generatePools(convert(UInt8, depth), Float64(1.0/rounds))
         println("we have generated ", length(pools), " pools.")
@@ -279,7 +292,10 @@ begin
                 println("pool ", pool, " is ", pools[pool])
             end =#
         local leafPools = filter(p -> p.depth == pools[length(pools)].depth, pools)
-        solving(leafPools,  last(intentsForMatching).time, intentsForMatching, pools)
+        solving(leafPools,  last(theIntents).time, theIntents, pools)        
     end
+    
 end
 
+println("press key to exit")
+n = readline()
