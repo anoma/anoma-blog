@@ -10,9 +10,6 @@ println("The number of locations 'locations' is ", locations, ".")
 maxVariability = 2
 println("The maximum variability of intents 'maxVariability' is ", maxVariability)
 
-# just for debugging
-local progressCounter = 0
-
 using DataStructures
 using Distributions
 using Random
@@ -79,12 +76,6 @@ function generateIntents(var::Int8, meanIntentWaitingTime::Float16)::Vector{Inte
     return collect(theList)
 end
     
-# this is a global variable: that's OK, because it is one experiment at a time
-intentsForMatching = generateIntents(convert(Int8,maxVariability), convert(Float16,0.0001))
-println("We have generated ", length(intentsForMatching), " intents.")
-for i in intentsForMatching
-    println(i.resource)
-end
 
 # each pool 
 mutable struct Pool
@@ -129,17 +120,15 @@ function generatePools(depth::UInt8,tick::Float64)::Vector{Pool}
 end
 
 rounds = 100
-pools = generatePools(convert(UInt8, maxDepth), Float64(1.0/rounds))
-println("we have generated ", length(pools), " pools.")
-for pool in 1:length(pools)
-    println("pool ", pool, " is ", pools[pool])
-end
+#pools = generatePools(convert(UInt8, maxDepth), Float64(1.0/rounds))
+#println("we have generated ", length(pools), " pools.")
+#for pool in 1:length(pools)
+#    println("pool ", pool, " is ", pools[pool])
+#end
 
+#leafPools = filter(p -> p.depth == pools[length(pools)].depth, pools)
 
-
-leafPools = filter(p -> p.depth == pools[length(pools)].depth, pools)
-
-print("we have ", length(leafPools), "leaf pools")
+#print("we have ", length(leafPools), "leaf pools")
 
 # put order to leaves
 function putOrders(leaves, intents, routing::Dict{UInt8,UInt8})
@@ -259,7 +248,8 @@ function solving(leafPools)
     local maxTime = last(intentsForMatching).time
     @assert locations >= length(leafPools) "too many pools"
 
-    local rout::Dict{UInt8,UInt8} = Dict(loc => loc for loc in 1:locations)
+    local rout::Dict{UInt8,UInt8} =
+         Dict(loc => ceil(Int, loc *length(leafPools)/locations) for loc in 1:locations)
     println("the time is $theTime and maxTime is $maxTime")
     while (theTime <= maxTime)
         println("time now is $theTime")
@@ -277,4 +267,17 @@ function solving(leafPools)
     return theSolution
 end
 
-solving(leafPools)
+
+# main loop
+
+for depth in 0:maxDepth
+    local pools = generatePools(convert(UInt8, depth), Float64(1.0/rounds))
+     println("we have generated ", length(pools), " pools.")
+#=     for pool in 1:length(pools)
+        println("pool ", pool, " is ", pools[pool])
+    end =#
+    local leafPools = filter(p -> p.depth == pools[length(pools)].depth, pools)
+
+    solving(leafPools)
+end
+
