@@ -242,10 +242,9 @@ end
 
 # a whole solving process
 
-function solving(leafPools)
+function solving(leafPools, maxTime, intents, pools)
     local theSolution = Dict()
     local theTime = 0
-    local maxTime = last(intentsForMatching).time
     @assert locations >= length(leafPools) "too many pools"
 
     local rout::Dict{UInt8,UInt8} =
@@ -254,7 +253,7 @@ function solving(leafPools)
     while (theTime <= maxTime)
         println("time now is $theTime")
         theTime = theTime + (last(leafPools).interval)
-        putOrders(leafPools, intentsForMatching, rout)
+        putOrders(leafPools, intents, rout)
         for p in reverse(pools)
             let solution = solvePool(p)
                 # println("lenght of solution is ", length(solution))
@@ -268,16 +267,19 @@ function solving(leafPools)
 end
 
 
+
 # main loop
-
-for depth in 0:maxDepth
-    local pools = generatePools(convert(UInt8, depth), Float64(1.0/rounds))
-     println("we have generated ", length(pools), " pools.")
-#=     for pool in 1:length(pools)
-        println("pool ", pool, " is ", pools[pool])
-    end =#
-    local leafPools = filter(p -> p.depth == pools[length(pools)].depth, pools)
-
-    solving(leafPools)
+begin
+    local intentsForMatching::Vector{Intent} = 
+        generateIntents(convert(Int8, maxVariability), convert(Float16, 0.01))
+    for depth in 0:maxDepth
+        local pools = generatePools(convert(UInt8, depth), Float64(1.0/rounds))
+        println("we have generated ", length(pools), " pools.")
+        #=     for pool in 1:length(pools)
+                println("pool ", pool, " is ", pools[pool])
+            end =#
+        local leafPools = filter(p -> p.depth == pools[length(pools)].depth, pools)
+        solving(leafPools,  last(intentsForMatching).time, intentsForMatching, pools)
+    end
 end
 
