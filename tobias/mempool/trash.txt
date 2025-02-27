@@ -1,0 +1,117 @@
+# Solving and propagetion of left over orders is done by `solvePoolAndPropagate`
+# - pool is the pool for solving
+function solvePoolAndPropagate(pool::Pool)
+    print("Solving a pool at depth ", pool.depth, "... ")
+    # the contents is copied for solving (we do it one by one due to potential Julia quirks)
+    local theContents = MutableLinkedList{Intent}()
+    for i in 1:length(pool.contents)
+        local resource = pool.contents[i].resource
+        @assert resource in -maxVariability:maxVariability "wrong intent $resource"
+        push!(theContents, pool.contents[i])
+        @assert theContents[i] == pool.contents[i] "FYI (cannot be wrong)"
+    end
+    # Note: there were weird errors with collect / copy of mutable linked list
+
+    #print(".. copied ..")
+    @assert length(pool.contents) == length(theContents) "copy wrong"
+    # the indices of matched intents (to be deleted)
+    local indices = MutableLinkedList{Int64}()
+    # the new solution
+    local solution = Dict()
+    # initialize balances of resources (resource kind 0 does not hurt here)
+    local balance = Dict(a => 0 for a in -maxVariability:maxVariability)
+    # calculate the resource balances (this could be a field of the pool)
+    for intent in theContents
+        let r = intent.resource
+            # print("inc ", r)
+            balance[r] = balance[r]+1
+        end
+    end
+    # do the actual solving for each intent
+    for i in 1:length(theContents)
+        # now i is the index of an intent
+        let r = (theContents[i]).resource
+            # now r is the rsource of i
+            # check if there is some (unspecified) intent that is matching
+            if balance[-r] > 0
+                # the intent i is matched!
+                # adapt balance 
+                balance[-r] = balance[-r]-1
+                # Note: balance[r] will be adapte or has been already adapted by the counterpart
+
+                # remember only the index
+                push!(indices, i)
+                # print("matched $r")
+            end
+        end        
+    end
+
+    # print("... solving ...")
+
+    # begin debug 
+    local balancecheck = Dict(a => 0 for a in 1:maxVariability)
+    for i in indices     
+        # check that indices are fine
+        @assert i in 1:length(theContents) "wrong indices for wanna be solution"
+        # the resource of the intent with index i
+        local r = (theContents[i]).resource
+        if r > 0
+            # the intent was a surplus to be given away
+            balancecheck[r] = balancecheck[r]+1
+        end
+        if r < 0
+            # the intent was demand/need to be received
+            balancecheck[-r] = balancecheck[-r]-1
+        end
+    end
+    # check that the solution is actually a solution — better than a proof ;-)
+    for a in 1:maxVariability
+        @assert balancecheck[a] == 0 "no matching at all $indices"
+    end
+    # make sure the order of indices is right
+    for j in 2:length(indices)
+        @assert indices[j] > indices[j-1]
+    end
+    # end debug
+
+    ### 
+
+    # next up: produce the solution and remove the matched intents
+
+    #if length(indices) > 0
+        #println("deleting so many indices in numbers ", length(indices))
+    #end
+    # starting with the biggest indices, loop over indices
+    for i in reverse(1:length(indices))
+        local index = indices[i]
+        # put the intent to the solution
+        let intent = pool.contents[index]
+            solution[intent] = (pool.nextTime, pool.depth, pool)
+        end
+        # remove it from the pool contents
+        delete!(pool.contents, index)
+    end
+
+    # update next time
+    pool.nextTime = pool.nextTime + pool.interval
+
+    # if it is time to do so, propagate the remaining contents (unless pool is the root)
+    if pool.depth > 0
+        # if the parent pool will solve also (or earlier) than the current pool
+        if pool.parent.nextTime <= pool.nextTime
+            # put intents one by one (julia quirks ...)
+            for index in reverse(1:length(pool.contents))
+                local intent = pool.contents[index]
+                @assert intent.resource in -maxVariability:maxVariability "wrong resource here! $pool"
+                pushfirst!(pool.parent.contents, intent)
+                delete!(pool.contents, index)
+            end
+            # check emptiness of the current pool
+            @assert isempty(pool.contents)
+        else
+            # nothing to do but wait
+        end
+    end
+    println(" ... solved!")
+    return solution
+end
