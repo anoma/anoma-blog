@@ -261,6 +261,7 @@ function solvePoolAndPropagate(pool::Pool)
         local index = indices[i]
         # put the intent to the solution
         let intent = pool.contents[index]
+            @assert intent.time <= pool.nextTime "we cannot have negative solving time !!! "
             # remove it from the pool contents
             delete!(pool.contents, index)
             solution[intent] = (pool.nextTime, pool.depth, pool)
