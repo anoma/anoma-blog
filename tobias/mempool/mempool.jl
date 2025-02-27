@@ -7,7 +7,7 @@ const locations = 2^maxDepth
 println("The number of locations 'locations' is $locations.")
 
 # the number of different kinds of resources
-const maxVariability = 2
+const maxVariability = 32
 println("The maximum variability of intents 'maxVariability' is $maxVariability.")
 
 # An intent is issued at
@@ -347,11 +347,10 @@ function solving(leafPools, maxTime, intents, pools)
     end
     
     local runningIntents = 0
-    local finished::Bool = false
+    local leftovers::Bool = true
     
     # println("the time is $theTime and maxTime is $maxTime")
-    while (globalTime <= maxTime || !finished || 0 < sum([length(p.contents) for p in pools if p!=pools[1]]))
-        local toplevelContents = copy(pools[1].contents)        
+    while (globalTime <= maxTime || leftovers)
         
         #println("time now is $theTime")
         # update time (lest we forget) -- it is just for the loop
@@ -366,6 +365,8 @@ function solving(leafPools, maxTime, intents, pools)
         local relevant = [i for i in intents if i.time >= oldTime && i.time < globalTime]
         putOrders(leafPools, relevant, rout)
         runningIntents += length(relevant)
+
+        leftovers = 0 < sum([length(p.contents) for p in pools if p!=pools[1]])
         
         @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools]) "oh noooo what?"
         
@@ -378,15 +379,6 @@ function solving(leafPools, maxTime, intents, pools)
                     @assert !(k in keys(theSolution)) "key present $k !"
                 end
                 merge!(theSolution, solution)
-                if p == pools[1]
-                    finished = true
-                    for i in p.contents
-                        finished = finished & (i in toplevelContents)
-                    end
-                    for i in toplevelContents
-                        finished = finished & (i in p.contents)
-                    end
-                end
             end
         end
         @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools]) "oh noooo, this is bad!"
@@ -397,6 +389,7 @@ function solving(leafPools, maxTime, intents, pools)
             propagateContents(pools[i])
         end
         
+        leftovers = leftovers || 0 < sum([length(p.contents) for p in pools if p!=pools[1]])
         @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools]) "oh noooo, also bad!"
         # println("time after solving is $theTime")
     end
@@ -413,6 +406,7 @@ const rounds = 20
 # main loop
 begin
     local someSolutions = MutableLinkedList()
+    local someLeftovers = MutableLinkedList()
     local expectedWaitingTime::Float16 = 0.0001
     local theIntents::Vector{Intent} = 
     generateIntents(convert(Int8, maxVariability), expectedWaitingTime)
@@ -436,10 +430,12 @@ begin
         end =#
         local leafPools = filter(p -> p.depth == pools[length(pools)].depth, pools)
         push!(someSolutions, solving(leafPools,  last(theIntents).time, theIntents, pools))
+        push!(someLeftovers, sum([length(p.contents) for p in pools]))
     end
-    print("calculated $(length(someSolutions)) solutions.")
-    for i in someSolutions
-        # @assert length(i) == length(someSolutions[1]) "oh nooooo!"
+    # println("calculated $(length(someSolutions)) solutions.")
+    for i in 1:length(someSolutions)
+        #@assert length(i) == length(someSolutions[1]) "oh nooooo!"
+        println("Solution $i) has length: ", length(someSolutions[i]), " with left overs ", someLeftovers[i], ".")
     end
     
     begin
