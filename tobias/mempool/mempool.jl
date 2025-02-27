@@ -7,7 +7,7 @@ const locations = 2^maxDepth
 println("The number of locations 'locations' is $locations.")
 
 # the number of different kinds of resources
-const maxVariability = 2
+const maxVariability = 32
 println("The maximum variability of intents 'maxVariability' is $maxVariability.")
 
 # An intent is issued at
@@ -169,7 +169,9 @@ function putOrders(leaves, intents, routing::Dict{UInt8,UInt8})
     # filter the relevant intents
     local relevant = [i for i in intents if i.time >= first && i.time < deadline]
     @assert length(relevant) == length(intents) "stupid bug ???"
-    println("Number of relevant intents for next tick is $(length(relevant)).")
+    if length(relevant) > 0
+        println("Number of relevant intents for next tick is $(length(relevant)).")
+    end
     for intent in relevant
         @assert intent.location in 1:locations "intent location messed up"
         @assert routing[intent.location] in 1:length(leaves) "routing messed up"
@@ -186,7 +188,7 @@ end
 function solvePoolAndPropagate(pool::Pool)
     local checksum = sum([intent.resource for intent in pool.contents])
     local oldLength = length(pool.contents)
-    print("Solving a pool at depth ", pool.depth, "... ")
+    ## print("Solving a pool at depth ", pool.depth, "... ")
     # the indices of matched intents (to be deleted)
     local indices = MutableLinkedList{Int64}()
     # the dictionrary for the solution
@@ -286,8 +288,10 @@ function solvePoolAndPropagate(pool::Pool)
         else
             # nothing to do but wait
         end
+    else
+        # println("root at time $(pool.nextTime)")
     end
-    println(" ... solved!")
+    ##println(" ... solved!")
     return solution
 end
 
@@ -331,29 +335,38 @@ function solving(leafPools, maxTime, intents, pools)
         end
     end
 
+    local runningIntents = 0
+
+    
     # println("the time is $theTime and maxTime is $maxTime")
-    while (theTime <= maxTime)
+    while (theTime <= maxTime || sum([length(pools[i].contents) for i in 2:length(pools)]) > 0)
+        
         #println("time now is $theTime")
         # update time (lest we forget) -- it is just for the loop
         local oldTime = theTime
         theTime = theTime + (last(leafPools).interval)
 
-        
         # in the current "tick", we first put new orders to the leaves
         local relevant = [i for i in intents if i.time >= oldTime && i.time < theTime]
         putOrders(leafPools, relevant, rout)
+        runningIntents += length(relevant)
 
+        @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools]) "oh noooo what?"
+        
         # starting from deepest/rightmost pools (i.e., leaves) going "left/up"
         for i in reverse(1:length(pools))
             local p = pools[i]
-            let solution = solvePoolAndPropagate(p)
-                # println("lenght of solution is ", length(solution))
-                for k in keys(solution)
-                    @assert !(k in keys(theSolution)) "key present $k !"
+            if theTime >= p.nextTime
+                let solution = solvePoolAndPropagate(p)
+                    # println("lenght of solution is ", length(solution))
+                    for k in keys(solution)
+                        @assert !(k in keys(theSolution)) "key present $k !"
+                    end
+                    merge!(theSolution, solution)
                 end
-                merge!(theSolution, solution)
             end
         end
+        @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools]) "oh noooo, this is bad!"
         # println("time after solving is $theTime")
     end
     println("We have solved ", length(theSolution), " intents.")
@@ -363,11 +376,12 @@ end
 
 using Plots
 
-# the number of rounds of solving to happen (in expectation?)
-const rounds = 100
+# the number of rounds of solving to happen at top level
+const rounds = 20
 
 # main loop
 begin
+    local someSolutions = MutableLinkedList()
     local expectedWaitingTime::Float16 = 0.0001
     local theIntents::Vector{Intent} = 
         generateIntents(convert(Int8, maxVariability), expectedWaitingTime)
@@ -384,17 +398,31 @@ begin
                     label="occurrence numbers for waiting times for the next intent"))
         end
     for depth in 0:maxDepth
-        local pools = generatePools(convert(UInt8, depth), Float64(1.0/rounds))
+        local pools = generatePools(convert(UInt8, depth), Float64(.999/(rounds*2^depth)))
         println("we have generated ", length(pools), " pools.")
         #=     for pool in 1:length(pools)
                 println("pool ", pool, " is ", pools[pool])
             end =#
         local leafPools = filter(p -> p.depth == pools[length(pools)].depth, pools)
-        solving(leafPools,  last(theIntents).time, theIntents, pools)        
+        push!(someSolutions, solving(leafPools,  last(theIntents).time, theIntents, pools))
     end
-    
+    print("calculated $(length(someSolutions)) solutions.")
+    for i in someSolutions
+        @assert length(i) == length(someSolutions[1]) "oh nooooo!"
+    end
+
+    begin
+	solvingTime = [
+		[round(digits=5, someSolutions[k][i][1]-i.time) for i in theIntents if 
+        haskey(someSolutions[k],i)] for k in 1:length(someSolutions)
+	]
+	display(Plots.bar([reverse(sort(solvingTime[j])) 
+                for j in 1:length(someSolutions)], 
+                ylabel = "Width", size = (800,400*4);
+				 layout = (length(someSolutions), 1)))
+    end
 end
 
-#println("press key to exit")
+println("press key to exit")
 
-#n = readline()
+_ = readline()
