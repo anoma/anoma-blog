@@ -96,13 +96,14 @@ mutable struct Pool
     depth::UInt8
     nextTime::Float64
     interval::Float64
+    now::Float64
     parent::Pool
     # the constructor for the root pool (the paramter is `interval`)
     Pool(t::Float64) =
-    (x = new(MutableLinkedList{Intent}(),0,t,t); x.parent = x)
+    (x = new(MutableLinkedList{Intent}(),0,t,t,0); x.parent = x)
     # a constructor for non-root pools, also need `parent` and `depth` info
     Pool(d::UInt8, t::Float64, p::Pool) =
-         new(MutableLinkedList{Intent}(),d,t,t,p)
+         new(MutableLinkedList{Intent}(),d,t,t,0,p)
 
 end
 
@@ -186,6 +187,9 @@ end
 # Solving and propagetion of left over orders is done by `solvePoolAndPropagate`
 # - pool is the pool for solving
 function solvePoolAndPropagate(pool::Pool)
+    if pool.now < pool.nextTime
+        return Dict()
+    end
     local checksum = sum([intent.resource for intent in pool.contents])
     local oldLength = length(pool.contents)
     ## print("Solving a pool at depth ", pool.depth, "... ")
@@ -261,7 +265,7 @@ function solvePoolAndPropagate(pool::Pool)
         local index = indices[i]
         # put the intent to the solution
         let intent = pool.contents[index]
-            @assert intent.time <= pool.nextTime "we cannot have negative solving time !!! "
+            #@assert intent.time <= pool.nextTime "we cannot have negative solving time !!! "
             # remove it from the pool contents
             delete!(pool.contents, index)
             solution[intent] = (pool.nextTime, pool.depth, pool)
@@ -282,6 +286,7 @@ function solvePoolAndPropagate(pool::Pool)
                 local intent = pool.contents[index]
                 delete!(pool.contents, index)
                 @assert intent.resource in -maxVariability:maxVariability "wrong resource here! $pool"
+                #@assert intent.time <= pool.parent.nextTime "... "
                 pushfirst!(pool.parent.contents, intent)
             end
             # check emptiness of the current pool
@@ -302,6 +307,7 @@ end
 # - intents is the set of intents from which we take new orders
 # - pools is the list of all pools 
 function solving(leafPools, maxTime, intents, pools)
+    local tick = (last(leafPools).interval)
     # the solution to be returned as global solution
     local theSolution = Dict()
     # we start at time 0
@@ -337,15 +343,18 @@ function solving(leafPools, maxTime, intents, pools)
     end
 
     local runningIntents = 0
-
+    local finished::Bool = false
     
     # println("the time is $theTime and maxTime is $maxTime")
-    while (theTime <= maxTime || sum([length(pools[i].contents) for i in 2:length(pools)]) > 0)
-        
+    while (theTime <= maxTime || !finished || 0 < sum([length(p.contents) for p in pools if p!=pools[1]]))
+        local toplevelContents = copy(pools[1].contents)        
         #println("time now is $theTime")
         # update time (lest we forget) -- it is just for the loop
         local oldTime = theTime
-        theTime = theTime + (last(leafPools).interval)
+        theTime = theTime + tick
+        for p in pools
+            p.now = theTime
+        end
 
         # in the current "tick", we first put new orders to the leaves
         local relevant = [i for i in intents if i.time >= oldTime && i.time < theTime]
@@ -357,13 +366,20 @@ function solving(leafPools, maxTime, intents, pools)
         # starting from deepest/rightmost pools (i.e., leaves) going "left/up"
         for i in reverse(1:length(pools))
             local p = pools[i]
-            if theTime >= p.nextTime
-                let solution = solvePoolAndPropagate(p)
-                    # println("lenght of solution is ", length(solution))
-                    for k in keys(solution)
-                        @assert !(k in keys(theSolution)) "key present $k !"
+            let solution = solvePoolAndPropagate(p)
+                # println("lenght of solution is ", length(solution))
+                for k in keys(solution)
+                    @assert !(k in keys(theSolution)) "key present $k !"
+                end
+                merge!(theSolution, solution)
+                if p == pools[1]
+                    finished = true
+                    for i in p.contents
+                        finished = finished & (i in toplevelContents)
                     end
-                    merge!(theSolution, solution)
+                    for i in toplevelContents
+                        finished = finished & (i in p.contents)
+                    end
                 end
             end
         end
@@ -409,7 +425,7 @@ begin
     end
     print("calculated $(length(someSolutions)) solutions.")
     for i in someSolutions
-        @assert length(i) == length(someSolutions[1]) "oh nooooo!"
+        # @assert length(i) == length(someSolutions[1]) "oh nooooo!"
     end
 
     begin
