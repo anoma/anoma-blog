@@ -18,6 +18,7 @@ struct Intent
     time :: Float64
     resource :: Int
     location :: UInt
+    id :: Int
 end
 
 using DataStructures
@@ -41,11 +42,14 @@ function generateIntents(var::Int8, meanIntentWaitingTime::Float16)::Vector{Inte
 
     # initialize the local sum of waiting times for new intents
     local localsum = 0;
+    # sequence number for intents (as othewise we get aliasing of intents with the same time)
+    local seq = 0;
     # as long as we do not reach the end of the experiment (at time unit 1)
     while (localsum < 1)
         # sample new waiting time and update sum of waiting times
         localsum += Random.rand(dist)
         # ☝️ this is the arrival time of the *next* intent
+        seq += 1
         
         # randomly generate supply or demand for a random resource
         @assert var <= maxVariability && 0 < var "variability not good"
@@ -54,7 +58,7 @@ function generateIntents(var::Int8, meanIntentWaitingTime::Float16)::Vector{Inte
         local nextLoc::UInt8 = Random.rand(1:locations)        
         @assert nextLoc in 1:locations
         # collect these data into the next next intent ... 
-        let newIntent = Intent(localsum, nextResource, nextLoc)
+        let newIntent = Intent(localsum, nextResource, nextLoc, seq)
         # ... and push it to the list—at the ᴇɴᴅ
             push!(theList, newIntent)
         end
@@ -180,37 +184,27 @@ end
 # Solving and propagetion of left over orders is done by `solvePoolAndPropagate`
 # - pool is the pool for solving
 function solvePoolAndPropagate(pool::Pool)
+    local checksum = sum([intent.resource for intent in pool.contents])
+    local oldLength = length(pool.contents)
     print("Solving a pool at depth ", pool.depth, "... ")
-    # the contents is copied for solving (we do it one by one due to potential Julia quirks)
-    local theContents = MutableLinkedList{Intent}()
-    for i in 1:length(pool.contents)
-        local resource = pool.contents[i].resource
-        @assert resource in -maxVariability:maxVariability "wrong intent $resource"
-        push!(theContents, pool.contents[i])
-        @assert theContents[i] == pool.contents[i] "FYI (cannot be wrong)"
-    end
-    # Note: there were weird errors with collect / copy of mutable linked list
-
-    #print(".. copied ..")
-    @assert length(pool.contents) == length(theContents) "copy wrong"
     # the indices of matched intents (to be deleted)
     local indices = MutableLinkedList{Int64}()
-    # the new solution
+    # the dictionrary for the solution
     local solution = Dict()
     # initialize balances of resources (resource kind 0 does not hurt here)
     local balance = Dict(a => 0 for a in -maxVariability:maxVariability)
-    # calculate the resource balances (this could be a field of the pool)
-    for intent in theContents
+    # calculate the resource balances (this could be a field of the pool to save compute)
+    for intent in pool.contents
         let r = intent.resource
             # print("inc ", r)
             balance[r] = balance[r]+1
         end
     end
     # do the actual solving for each intent
-    for i in 1:length(theContents)
-        # now i is the index of an intent
-        let r = (theContents[i]).resource
-            # now r is the rsource of i
+    for index in reverse(1:length(pool.contents))
+        # now index is the index of an intent
+        let r = (pool.contents[index]).resource
+            # now r is the rsource at index
             # check if there is some (unspecified) intent that is matching
             if balance[-r] > 0
                 # the intent i is matched!
@@ -219,7 +213,7 @@ function solvePoolAndPropagate(pool::Pool)
                 # Note: balance[r] will be adapte or has been already adapted by the counterpart
 
                 # remember only the index
-                push!(indices, i)
+                pushfirst!(indices, index)
                 # print("matched $r")
             end
         end        
@@ -229,11 +223,11 @@ function solvePoolAndPropagate(pool::Pool)
 
     # begin debug 
     local balancecheck = Dict(a => 0 for a in 1:maxVariability)
-    for i in indices     
+    for index in indices     
         # check that indices are fine
-        @assert i in 1:length(theContents) "wrong indices for wanna be solution"
+        @assert index in 1:length(pool.contents) "wrong indices for wanna be solution"
         # the resource of the intent with index i
-        local r = (theContents[i]).resource
+        local r = (pool.contents[index]).resource
         if r > 0
             # the intent was a surplus to be given away
             balancecheck[r] = balancecheck[r]+1
@@ -247,7 +241,7 @@ function solvePoolAndPropagate(pool::Pool)
     for a in 1:maxVariability
         @assert balancecheck[a] == 0 "no matching at all $indices"
     end
-    # make sure the order of indices is right
+    # make sure the order of indices is ascending 
     for j in 2:length(indices)
         @assert indices[j] > indices[j-1]
     end
@@ -265,12 +259,14 @@ function solvePoolAndPropagate(pool::Pool)
         local index = indices[i]
         # put the intent to the solution
         let intent = pool.contents[index]
+            # remove it from the pool contents
+            delete!(pool.contents, index)
             solution[intent] = (pool.nextTime, pool.depth, pool)
         end
-        # remove it from the pool contents
-        delete!(pool.contents, index)
     end
 
+    @assert checksum == sum([intent.resource for intent in pool.contents]) "error???"
+    @assert oldLength == length(pool.contents) + length(indices)
     # update next time
     pool.nextTime = pool.nextTime + pool.interval
 
@@ -281,12 +277,12 @@ function solvePoolAndPropagate(pool::Pool)
             # put intents one by one (julia quirks ...)
             for index in reverse(1:length(pool.contents))
                 local intent = pool.contents[index]
+                delete!(pool.contents, index)
                 @assert intent.resource in -maxVariability:maxVariability "wrong resource here! $pool"
                 pushfirst!(pool.parent.contents, intent)
-                delete!(pool.contents, index)
             end
             # check emptiness of the current pool
-            @assert isempty(pool.contents)
+            @assert isempty(pool.contents) "not everything transferred !!!"
         else
             # nothing to do but wait
         end
@@ -353,11 +349,7 @@ function solving(leafPools, maxTime, intents, pools)
             let solution = solvePoolAndPropagate(p)
                 # println("lenght of solution is ", length(solution))
                 for k in keys(solution)
-                    if k in keys(theSolution)
-                        print("DUPLICATE KEY $k ! ", solution[k], " ", theSolution[k])
-                        @assert solution[k][3] == theSolution[k][3] "yo?"
-                    end
-                    # @assert !(k in keys(theSolution)) "key present $k ! $(solution[k]) $(theSolution[k])"
+                    @assert !(k in keys(theSolution)) "key present $k !"
                 end
                 merge!(theSolution, solution)
             end
