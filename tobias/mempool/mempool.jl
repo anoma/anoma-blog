@@ -1,19 +1,14 @@
 # the maximal depth of mempool hierarchies
-maxDepth=5
-println("Set maximal depth of hierarchies 'maxDepth' is ", maxDepth, ".")
+const maxDepth=5
+println("Set maximal depth of hierarchies 'maxDepth' is $maxDepth.")
 
-# the number of locations at which new intents are collected
-locations = 2^maxDepth
-println("The number of locations 'locations' is ", locations, ".")
+# the number of locations at which intents flow in (derived from maxDepth)
+const locations = 2^maxDepth
+println("The number of locations 'locations' is $locations.")
 
 # the number of different kinds of resources
-maxVariability = 2
-println("The maximum variability of intents 'maxVariability' is ", maxVariability)
-
-using DataStructures
-using Distributions
-using Random
-using Plots
+const maxVariability = 2
+println("The maximum variability of intents 'maxVariability' is $maxVariability.")
 
 # An intent is issued at
 # - a specific point in *time*
@@ -25,12 +20,19 @@ struct Intent
     location :: UInt
 end
 
-# `generateIntents`: a function to generate intents
-# The parameters are
-# - the number of different resources `var`
-# - the mean waiting time between intents `meanIntentWitingTime`
+using DataStructures
+using Distributions
+using Random
+
+# We use `generateIntents`, a function, to generate intents for the experiment.
+# The parameters of `generateIntents` are
+# - the number of different resources: `var`
+# - the mean waiting time between intents: `meanIntentWitingTime`
+# (Note tha the number of locations is fixed as a global constant.)
 function generateIntents(var::Int8, meanIntentWaitingTime::Float16)::Vector{Intent}
 
+    print("Generating intents with variability $var")
+    println(" and mean waiting time $meanIntentWaitingTime.")
     # We use exponentially distributed waiting times for intents
     local dist = Exponential(meanIntentWaitingTime)
 
@@ -38,27 +40,30 @@ function generateIntents(var::Int8, meanIntentWaitingTime::Float16)::Vector{Inte
     local theList = MutableLinkedList{Intent}()
 
     # initialize the local sum of waiting times for new intents
-    # (i.e., the time that passes until the first intent will arrive)
     local localsum = 0;
     # as long as we do not reach the end of the experiment (at time unit 1)
     while (localsum < 1)
+        # sample new waiting time and update sum of waiting times
+        localsum += Random.rand(dist)
+        # ☝️ this is the arrival time of the *next* intent
         
         # randomly generate supply or demand for a random resource
-        @assert var <= maxVariability "variability not good"
-        local nextV::Int = Random.rand([x for x in -var:var if x!=0])
-        local nextLoc::UInt8 = Random.rand(1:locations)
+        @assert var <= maxVariability && 0 < var "variability not good"
+        local nextResource::Int = Random.rand([x for x in -var:var if x!=0])
+        # randomly choose a location of where the intent flows into the system
+        local nextLoc::UInt8 = Random.rand(1:locations)        
         @assert nextLoc in 1:locations
-        # generate next intent ... 
-        let newIntent = Intent(localsum, nextV, nextLoc)
-        # ... and push it to the list (at the end)
+        # collect these data into the next next intent ... 
+        let newIntent = Intent(localsum, nextResource, nextLoc)
+        # ... and push it to the list—at the ᴇɴᴅ
             push!(theList, newIntent)
         end
-        # update sum of the waiting times 
-        localsum += Random.rand(dist);
-        # ☝️ this is the arrival time of the *next* intent (or something ≥ 1)
+
     end
-    # some "debug" printing
+    # some "info" printing
     local theLength = length(theList)
+    @assert theLength > 3 "not enough intents!"
+
     local thePeek = (getindex(theList, div(theLength, 2)-1),
                         getindex(theList, div(theLength, 2)),
                         getindex(theList, div(theLength, 2)+1))
@@ -69,41 +74,59 @@ function generateIntents(var::Int8, meanIntentWaitingTime::Float16)::Vector{Inte
             println("Intent #$index is $(thePeek[i])")
         end
     end
-    println("Intent #theLength is $(theList[theLength])")
+    println("Intent #$theLength is $(theList[theLength])")
     for i in theList
         @assert i.location in 1:locations
     end
     return collect(theList)
 end
     
-
-# each pool 
+# each pool has 
+# - a list of intents as `contents`, initially empty
+# - a `depth`` in the hierarchy
+# - a time stamp `nextTime` at which the next solving will happen
+# - an `interval` for the time in between solving times
+# - a `parent` pool (which points to "self" if it the root)
 mutable struct Pool
     contents::MutableLinkedList{Intent}
     depth::UInt8
     nextTime::Float64
     interval::Float64
     parent::Pool
+    # the constructor for the root pool (the paramter is `interval`)
+    Pool(t::Float64) =
+    (x = new(MutableLinkedList{Intent}(),0,t,t); x.parent = x)
+    # a constructor for non-root pools, also need `parent` and `depth` info
     Pool(d::UInt8, t::Float64, p::Pool) =
          new(MutableLinkedList{Intent}(),d,t,t,p)
-    Pool(d::UInt8, t::Float64) =
-         (x = new(MutableLinkedList{Intent}(),d,t,t); x.parent = x)
+
 end
 
-# generate a hiearchy of pools
+# We generate a hiearchy of pools with the function `generatePools`:
 # - depth is the depth of the binary tree
-# - tick is the solving time of leaf pool
-function generatePools(depth::UInt8,tick::Float64)::Vector{Pool}
+# - tick is the interval of leaf pools
+function generatePools(depth::UInt8, tick::Float64)::Vector{Pool}
+    # the linked list of pools to create the result
     local res = MutableLinkedList{Pool}()
+    @assert depth <= maxDepth "Hierarchy too deep!"
+    # starting from the root, generate pools
     for d::UInt8 in 0:depth
+        # the interval and nextTime are doubling each time we go "up" in the hiearchy
         local next::Float64 = tick*2^(depth-d)
+        # create 2^d pools at depth d
         for _ in 1:(2^d)
             if d == 0
-                push!(res,Pool(d, next))
+                # this is ᴛʜᴇ root pool
+                push!(res, Pool(next))
             else
-                @assert d > 0 
+                @assert d > 0 "just FYI (or Julia is broken)"
+                # calculate parent index in the initial part of the list
                 let parentIndex = (length(res)+1) ÷ 2
-                    push!(res, Pool(d,next,res[parentIndex]))
+                    # fetch the parent pool 
+                    let parent = res[parentIndex]
+                        # add the next pool at depth d
+                        push!(res, Pool(d,next,parent))
+                    end
                 end
             end
         end
@@ -116,161 +139,244 @@ function generatePools(depth::UInt8,tick::Float64)::Vector{Pool}
         @assert 2*pool.interval == pool.parent.interval "interval time messed up"
     end
     # end debug
-    collect(res)
+    
+    # done and return 
+    return collect(res)
 end
 
-rounds = 100
-#pools = generatePools(convert(UInt8, maxDepth), Float64(1.0/rounds))
-#println("we have generated ", length(pools), " pools.")
-#for pool in 1:length(pools)
-#    println("pool ", pool, " is ", pools[pool])
-#end
 
-#leafPools = filter(p -> p.depth == pools[length(pools)].depth, pools)
-
-#print("we have ", length(leafPools), "leaf pools")
-
-# put order to leaves
+# We use the function to put new orders to the leaf nodes (dependeing on their nextTime)
+# - leaves is the list of leaf nodes
+# - intents is the list of all intents
+# - routing maps locations to indices of leaf pools in the `leaves` list
+# The `nextTime` and `interval` are assumed to be the same for all leaves
 function putOrders(leaves, intents, routing::Dict{UInt8,UInt8})
+    # checks
+    for l in leaves
+        @assert l.nextTime == leaves[1].nextTime "The `nextTime`s are messed up!"
+        @assert l.interval == leaves[1].interval "The `interval`s are messed up!"        
+    end
+
+    # the deadline for solving
     local deadline = leaves[1].nextTime
+    # the first time at which new intents are to be considered
     local first = deadline-(leaves[1].interval)
-    @assert deadline > first
-    local relevant = filter(i::Intent -> i.time >= first && i.time < deadline, intents)
-    println("number of relevant intents is ", length(relevant))
-    for i in relevant
-        # println("location is ", i.location)
-        @assert i.location in 1:locations 
-        let j = routing[(i.location)]
-            pushfirst!(leaves[j].contents, i)
+    @assert deadline > first "FYI (that cannot be)"
+    # filter the relevant intents
+    local relevant = [i for i in intents if i.time >= first && i.time < deadline]
+    @assert length(relevant) == length(intents) "stupid bug ???"
+    println("Number of relevant intents for next tick is $(length(relevant)).")
+    for intent in relevant
+        @assert intent.location in 1:locations "intent location messed up"
+        @assert routing[intent.location] in 1:length(leaves) "routing messed up"
+        let j = routing[intent.location]
+            # put the intent in the pool to which it is routed
+            pushfirst!(leaves[j].contents, intent)
+            # NB: we push to the head of the list
         end
     end
 end
 
-# return a list of indices of matched intents for a current pool contents
-function solvePool(pool::Pool)
-    print("solving a pool at depth", pool.depth)
-    # begin debug
-    # end debug
-    # the contents of solving
-    local theLength = length(pool.contents)
-    # print("the length of pool.contents ", theLength)
+# Solving and propagetion of left over orders is done by `solvePoolAndPropagate`
+# - pool is the pool for solving
+function solvePoolAndPropagate(pool::Pool)
+    print("Solving a pool at depth ", pool.depth, "... ")
+    # the contents is copied for solving (we do it one by one due to potential Julia quirks)
     local theContents = MutableLinkedList{Intent}()
-    # there are weir errors with collect / copy of mutable linked list, it seems
     for i in 1:length(pool.contents)
         local resource = pool.contents[i].resource
         @assert resource in -maxVariability:maxVariability "wrong intent $resource"
         push!(theContents, pool.contents[i])
+        @assert theContents[i] == pool.contents[i] "FYI (cannot be wrong)"
     end
-    print(".. copied ..")
-    @assert theLength == length(theContents) "copy broken"
+    # Note: there were weird errors with collect / copy of mutable linked list
+
+    #print(".. copied ..")
+    @assert length(pool.contents) == length(theContents) "copy wrong"
     # the indices of matched intents (to be deleted)
     local indices = MutableLinkedList{Int64}()
-    # the new solutions
+    # the new solution
     local solution = Dict()
+    # initialize balances of resources (resource kind 0 does not hurt here)
     local balance = Dict(a => 0 for a in -maxVariability:maxVariability)
     # calculate the resource balances (this could be a field of the pool)
     for intent in theContents
         let r = intent.resource
-            print("inc ", r)
+            # print("inc ", r)
             balance[r] = balance[r]+1
         end
     end
+    # do the actual solving for each intent
     for i in 1:length(theContents)
+        # now i is the index of an intent
         let r = (theContents[i]).resource
+            # now r is the rsource of i
+            # check if there is some (unspecified) intent that is matching
             if balance[-r] > 0
+                # the intent i is matched!
+                # adapt balance 
                 balance[-r] = balance[-r]-1
-                # the matcing intend will take care of the other decrementt
+                # Note: balance[r] will be adapte or has been already adapted by the counterpart
+
+                # remember only the index
                 push!(indices, i)
-                print("matched $r")
+                # print("matched $r")
             end
         end        
     end
 
-    print("... solving ...")
+    # print("... solving ...")
 
     # begin debug 
     local balancecheck = Dict(a => 0 for a in 1:maxVariability)
     for i in indices     
+        # check that indices are fine
         @assert i in 1:length(theContents) "wrong indices for wanna be solution"
+        # the resource of the intent with index i
         local r = (theContents[i]).resource
         if r > 0
+            # the intent was a surplus to be given away
             balancecheck[r] = balancecheck[r]+1
         end
         if r < 0
+            # the intent was demand/need to be received
             balancecheck[-r] = balancecheck[-r]-1
         end
     end
+    # check that the solution is actually a solution — better than a proof ;-)
     for a in 1:maxVariability
         @assert balancecheck[a] == 0 "no matching at all $indices"
     end
+    # make sure the order of indices is right
     for j in 2:length(indices)
-        @assert indices[j-1] < indices[j]
+        @assert indices[j] > indices[j-1]
     end
     # end debug
 
-    # extend solution and remove the matched intents
+    ### 
 
-    if length(indices) > 0
-        println("deleting so many indices  in numbers ", length(indices))
-    end
-    for i in reverse(indices)
-        let intent = pool.contents[i]
-            solution[intent] = (pool.nextTime, pool.depth)
+    # next up: produce the solution and remove the matched intents
+
+    #if length(indices) > 0
+        #println("deleting so many indices in numbers ", length(indices))
+    #end
+    # starting with the biggest indices, loop over indices
+    for i in reverse(1:length(indices))
+        local index = indices[i]
+        # put the intent to the solution
+        let intent = pool.contents[index]
+            solution[intent] = (pool.nextTime, pool.depth, pool)
         end
-        # print("Delete alert ", length(pool.contents), " ", i)
-        delete!(pool.contents, i)
+        # remove it from the pool contents
+        delete!(pool.contents, index)
     end
 
     # update next time
     pool.nextTime = pool.nextTime + pool.interval
 
-    # check if we need to propagate the remaining contents
-    if pool.depth > 0 
+    # if it is time to do so, propagate the remaining contents (unless pool is the root)
+    if pool.depth > 0
+        # if the parent pool will solve also (or earlier) than the current pool
         if pool.parent.nextTime <= pool.nextTime
-            for i in pool.contents
-                @assert i.resource in -maxVariability:maxVariability "wrong resource here! $pool"
-                pushfirst!(pool.parent.contents, i)
+            # put intents one by one (julia quirks ...)
+            for index in reverse(1:length(pool.contents))
+                local intent = pool.contents[index]
+                @assert intent.resource in -maxVariability:maxVariability "wrong resource here! $pool"
+                pushfirst!(pool.parent.contents, intent)
+                delete!(pool.contents, index)
             end
-            pool.contents = MutableLinkedList{Intent}()
+            # check emptiness of the current pool
+            @assert isempty(pool.contents)
         else
             # nothing to do but wait
         end
     end
-    println("solved a pool at depth", pool.depth)
+    println(" ... solved!")
     return solution
 end
 
-# a whole solving process
-
+# a whole solving round is done by `solving`
+# - leafpools is where the new orders are going to be put
+# - maxTime is the end of the experiment (typiclly 1)
+# - intents is the set of intents from which we take new orders
+# - pools is the list of all pools 
 function solving(leafPools, maxTime, intents, pools)
+    # the solution to be returned as global solution
     local theSolution = Dict()
+    # we start at time 0
     local theTime = 0
-    @assert locations >= length(leafPools) "too many pools"
+    # a useful assumption (no point in having more than one pool per location)
+    @assert locations >= length(leafPools) "too many pools or not enough locations"
 
+    # calculate the routing of locations to leaf pools
     local rout::Dict{UInt8,UInt8} =
          Dict(loc => ceil(Int, loc *length(leafPools)/locations) for loc in 1:locations)
-    println("the time is $theTime and maxTime is $maxTime")
+
+    # double check that this routing works         
+    for i in 1:locations
+        @assert rout[i] in 1:length(leafPools) "routing is incorrectly constructed"
+    end
+
+    # check the proper inputs for pools
+    # leaves accounted for
+    for l in leafPools
+        @assert l in pools "spurious leaf or pools missing leaves"
+    end
+    # pools properly constructed
+    for index in reverse(1:length(pools))
+        let p = pools[index]
+            @assert p.parent in pools
+            @assert p.parent.depth < p.depth  || p.depth == 0 "depths relation wrong"
+            if index > 1
+                @assert p.depth >= pools[index-1].depth "deeper pools not to the right"
+            else
+                @assert p.depth == 0 "root pool wrong"
+            end
+        end
+    end
+
+    # println("the time is $theTime and maxTime is $maxTime")
     while (theTime <= maxTime)
-        println("time now is $theTime")
+        #println("time now is $theTime")
+        # update time (lest we forget) -- it is just for the loop
+        local oldTime = theTime
         theTime = theTime + (last(leafPools).interval)
-        putOrders(leafPools, intents, rout)
-        for p in reverse(pools)
-            let solution = solvePool(p)
+
+        
+        # in the current "tick", we first put new orders to the leaves
+        local relevant = [i for i in intents if i.time >= oldTime && i.time < theTime]
+        putOrders(leafPools, relevant, rout)
+
+        # starting from deepest/rightmost pools (i.e., leaves) going "left/up"
+        for i in reverse(1:length(pools))
+            local p = pools[i]
+            let solution = solvePoolAndPropagate(p)
                 # println("lenght of solution is ", length(solution))
+                for k in keys(solution)
+                    if k in keys(theSolution)
+                        print("DUPLICATE KEY $k ! ", solution[k], " ", theSolution[k])
+                        @assert solution[k][3] == theSolution[k][3] "yo?"
+                    end
+                    # @assert !(k in keys(theSolution)) "key present $k ! $(solution[k]) $(theSolution[k])"
+                end
                 merge!(theSolution, solution)
             end
         end
-        println("time after solving is $theTime")
+        # println("time after solving is $theTime")
     end
     println("We have solved ", length(theSolution), " intents.")
     return theSolution
 end
 
 
+using Plots
+
+# the number of rounds of solving to happen (in expectation?)
+const rounds = 100
 
 # main loop
 begin
-    local expectedWaitingTime::Float16 = 0.001
+    local expectedWaitingTime::Float16 = 0.0001
     local theIntents::Vector{Intent} = 
         generateIntents(convert(Int8, maxVariability), expectedWaitingTime)
 
@@ -297,5 +403,6 @@ begin
     
 end
 
-println("press key to exit")
-n = readline()
+#println("press key to exit")
+
+#n = readline()
