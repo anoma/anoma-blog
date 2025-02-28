@@ -296,7 +296,7 @@ function propagateContents(pool::Pool)
             delete!(pool.contents, index)
             @assert intent.resource in -maxVariability:maxVariability "wrong resource here! $pool"
             @assert intent.time <= pool.parent.nextTime "no time machine!"
-            pushfirst!(pool.parent.contents, intent)
+            push!(pool.parent.contents, intent)
         end
         # check emptiness of the current pool
         @assert isempty(pool.contents) "not everything transferred !!!"
@@ -446,8 +446,19 @@ begin
     end
     # println("calculated $(length(someSolutions)) solutions.")
     for i in 1:length(someSolutions)
-        #@assert length(i) == length(someSolutions[1]) "oh nooooo!"
-        println("Solution $i) has length: ", length(someSolutions[i]), " with left overs ", someLeftovers[i], ".")
+        @assert length(someSolutions[i]) == length(someSolutions[1]) "oh nooooo!"
+        # println("Solution $i) has length: ", length(someSolutions[i]), " with left overs ", someLeftovers[i], ".")
+    end
+
+    let tenth = div(length(someSolutions[1]),10)
+        for s in someSolutions
+            delete!(s,length(s)-tenth:length(s))
+            
+            delete!(s,1:tenth)
+            local stuckTimes = [s[k][1]-k.time for k in keys(s)]
+            local valueLost = sum([MathConstants.e^(-t) for t in stuckTimes])
+            println("value lost due to waiting: $valueLost.")
+        end
     end
     
     begin
