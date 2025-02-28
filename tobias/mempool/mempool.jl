@@ -287,7 +287,7 @@ function propagateContents(pool::Pool)
     # if it is time to do so, propagate the remaining contents (unless pool is the root)
     @assert pool.depth > 0
     @assert pool.now < pool.nextTime "unrealistic, because propagation is after solving and nextTime is updated"
-
+    
     # if the parent pool will solve earlier (or the same time) than the current pool
     if pool.parent.nextTime <= pool.nextTime
         # propagate intents one by one (julia quirks ...)
@@ -365,13 +365,13 @@ function solving(leafPools, maxTime, intents, pools)
         local relevant = [i for i in intents if i.time >= oldTime && i.time < globalTime]
         putOrders(leafPools, relevant, rout)
         runningIntents += length(relevant)
-
+        
         leftovers = 0 < sum([length(p.contents) for p in pools if p!=pools[1]])
         
         @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools]) "oh noooo what?"
         
         # starting from deepest/rightmost pools (i.e., leaves) going "left/up"
-        for i in reverse(1:length(pools))
+        for i in 1:length(pools)
             local p = pools[i]
             let solution = solvePool(p)
                 # println("lenght of solution is ", length(solution))
@@ -390,9 +390,21 @@ function solving(leafPools, maxTime, intents, pools)
         end
         
         leftovers = leftovers || 0 < sum([length(p.contents) for p in pools if p!=pools[1]])
+        
         @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools]) "oh noooo, also bad!"
         # println("time after solving is $theTime")
     end
+    
+    # final solve of top level pool
+    pools[1].now = pools[1].nextTime
+    let solution = solvePool(pools[1])
+        # println("lenght of solution is ", length(solution))
+        for k in keys(solution)
+            @assert !(k in keys(theSolution)) "key present $k !"
+        end
+        merge!(theSolution, solution)
+    end
+    
     println("We have solved ", length(theSolution), " intents.")
     return theSolution
 end
