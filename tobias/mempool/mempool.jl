@@ -25,6 +25,8 @@ end
 using DataStructures
 using Distributions
 using Random
+Random.seed!(123)
+
 # We use `generateIntents`, a function, to generate intents for the experiment.
 # The parameters of `generateIntents` are
 # - the number of different resources: `var`
@@ -172,7 +174,7 @@ function putOrders(leaves, intents, routing::Dict{UInt8,UInt8})
     local relevant = [i for i in intents if i.time >= first && i.time < deadline]
     @assert length(relevant) == length(intents) "stupid bug ???"
     if length(relevant) > 0
-        println("Number of relevant intents for next tick is $(length(relevant)).")
+        # println("Number of relevant intents for next tick is $(length(relevant)).")
     end
     for intent in relevant
         @assert intent.location in 1:locations "intent location messed up"
@@ -269,7 +271,7 @@ function solvePool(pool::Pool)
             @assert intent.time <= pool.nextTime "we cannot have negative solving time !!! "
             # remove it from the pool contents
             delete!(pool.contents, index)
-            solution[intent] = (pool.nextTime, pool.depth, pool)
+            solution[intent] = (pool.now, pool.depth, pool)
         end
     end
     
@@ -379,8 +381,6 @@ function solving(leafPools, maxTime, intents, pools)
         putOrders(leafPools, relevant, rout)
         runningIntents += length(relevant)
         
-        leftovers = 0 < sum([length(p.contents) for p in pools if p!=pools[1]])
-        
         @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools]) "oh noooo what?"
         
         # starting from deepest/rightmost pools (i.e., leaves) going "left/up"
@@ -401,8 +401,9 @@ function solving(leafPools, maxTime, intents, pools)
         for i in 2:length(pools)
             propagateContents(pools[i])
         end
-        
-        leftovers = leftovers || 0 < sum([length(p.contents) for p in pools if p!=pools[1]])
+
+        # update secondary condition for loop termination
+        leftovers = 0 < sum([length(p.contents) for p in pools if p!=pools[1]])
         
         @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools]) "oh noooo, also bad!"
         # println("time after solving is $theTime")
@@ -469,7 +470,7 @@ begin
             
             delete!(s,1:tenth)
             local stuckTimes = [s[k][1]-k.time for k in keys(s)]
-            local valueLost = sum([MathConstants.e^(-t) for t in stuckTimes])
+            local valueLost = sum([MathConstants.e^(t) for t in stuckTimes])
             println("Value lost due to waiting: $valueLost.")
             println("Rough picture of percentages per depth:")
             printPercentages(s)
