@@ -1,26 +1,25 @@
-# Operator Pool Trees: filling order flow ASAP—at least in theory
+# Growing trees of solving pools: local first works great
 
 If you (at some point in your life)
 
-> criticized the broad use of mathematical models for human behaviour, arguing that some human choices are irreducible to mathematics  
-> [[Wikipedia: Mathematical Economics]](https://en.wikipedia.org/wiki/Mathematical_economics)
+> criticized the broad use of mathematical models for human behaviour, arguing that some human choices are irreducible to mathematics [[Wikipedia: Mathematical Economics]](https://en.wikipedia.org/wiki/Mathematical_economics)
 
 you will have a field day criticizing this blog post.
 If not,
 I hope you agree with my strategy in writing this article:[^1]
-I will start by presenting the whole background, in particular utility functions, discount factors, and social welfare optimization 
-(in the hope that the critics get too bored), 
-before the presentation of the core idea:
-a model for networks of interconnected frequent batch auctions of operator pools that allows to rule out certain constellations, because they are utter nonsense (for the purpose of welfare maximization)—even under the most favourable conditions.
-<!-- Finally,
-I conclude with a tentative research agenda as to 
-how one may go about implementing suitable  _distributed_ frequent back auctions. 
--->
+We shall start off with an exhaustive recap of the background, 
+in particular utility functions, discount factors, and social welfare optimization;
+then, we can already look at the the core idea:
+a mathematical model for running a tree of frequent batch auctions,
+which on paper will do just fine and are *literally* local first.[^a]
 Finally,
-I conclude with a tentative research agenda for how the insights gained 
+we finish off with a tentative research agenda for how the insights gained 
 could be a basis for _distributed_ frequent batch auctions
-as part of Anoma as an intent-machine for Ethereum.
-So, buckle up for a _»tour Xe force«_ through some  _elements of mathematical economics_ or skip to the end for how this relates to Anoma as an intent machine for Ethereum.[^2]
+as part of the Anoma ecosystem.
+So,
+buckle up for a _»tour Xe force«_ through some
+_elements of mathematical economics_ or
+skip to the end for how this relates to organizing solvers in Anoma.[^2]
 
 ## Utility functions, discounted utility, \& maximal welfare
 
@@ -29,18 +28,6 @@ So, buckle up for a _»tour Xe force«_ through some  _elements of mathematical 
 Wikipedia's short explanation of utility function is that[^6]
 
 > a decision-maker faced with risky […] outcomes of different choices will behave as if they are maximizing the expected value of some function […]. This function is known as the von Neumann–Morgenstern utility function.
-
-<!-- 
-While utility functions are, first and foremost, 
-a concept of mathematical economics,
-we go as far out and assume that utility is in rough  is some kind of
-value created if users have their orders filled.
-How the two relate exactly is out of the scope of this blog post.
-Note that if we were to add the right amount of
-auction theory or mechanism design,
-chances are we would come close to a fair fee for order fulfillment,
-which one may take as proxy for utility functions.
--->
 
 Let us refrain from philosophical claims about what utility functions are "actually" corresponding to in every day life.
 We can simply follow the practice of mathematical economists and write
@@ -81,28 +68,25 @@ We assume that orders may flow from any point on a circle as the black one in th
 More precisely, 
 we model order flow as a set of Poisson point processes equally spread around our circle of operators, rendered as green dotted small circles on the black circle.[^8]
 We assume the activity of these order flow processes to be time-invariant so that 
-batch auctions fill $X\%$ of all order flow in expectation where **I am missing a good value for $X$, but it should be around 50% or higher, but 30% may work as well.**
-Unfilled order flow will move along green lines towards the global pool in the centre,
+batch auctions fill around $50%$ of all order flow in expectation, 
+because then we have an even load for all of the pools.[^b]
+Unfilled order flow will move along green lines towards the global pool in the center,
 but has the possibility to be filled in pools of intermediate size.
 Let us describe this now in more detail and present 
 some conditions that may deserve to be explored in detail.
 
-<!-- suitable number for X, the percentage of order flow being filled ? -->
 
-### The network structure: a complete $\boldsymbol{\gamma}$-ary tree of operator pools
+### The network structure: a complete $\boldsymbol{d}$-ary tree of operator pools
 
-Suppose we have $\gamma^k$ operators that can accept order flow.[^3]
-We arrange the operators as the leaves of a complete $\gamma$-ary tree,
+Suppose we have $d^k$ operators that can accept order flow.[^3]
+We arrange the operators as the leaves of a complete $d$-ary tree,
 and the inner nodes of the tree thus correspond to 
-_operator pools_ of size $\gamma^h$ where $h$ is the height of 
-the inner node of the tree;
-thus, 
-the root corresponds to the _global pool_ of size $\gamma^k$
-and each operator could be seen as a degenerate pool of size $1$.
-<!-- I am not quite sure yet, if
-we will see that this does not bring anything to the table
-and thus basically can ignore the leaves and 
-focus on the proper pools.-->
+_operator pools_ of size $d^h$ where $h$ is the height of 
+the inner node of the tree.
+The case for $d=2$ is illustrated in the figure. 
+The root corresponds to the _global pool_ that will be operated by all $d^k$ operators, in a maximally decentralized way, using consensus.
+All other pools are operated by $d^j$ for $j \leq k -1$;
+thus, for simplicity we assume that the leaf pools have a single operator.[^c]
 
 ###  Delay approximations and why we should care
 Finding consensus among operators of a pool—be it
@@ -110,14 +94,8 @@ about the next batch of intents, transaction bundles, or
 other types of order conglomerates—will take 
 quadratic communication complexity,
 but only incur a delay that is proportional to 
-the (average of) longest communication delays. <!-- 
-check: run the numbers
-https://docs.julialang.org/en/v1/manual/arrays/
-so, we need 2/3rds of all validators,
-any minimal quorum is chosen uniformly,
-latency is proportional to maximal distance;
-intuitively, with larger sets, we have super-linear growth
---> 
+the (average of) longest communication delays. 
+
 For a first estimate,
 we assume operators to be spread out evenly on a circle,
 such that sibling leaves of the tree
@@ -125,54 +103,46 @@ are neighbours on the circle.[^4]
 As estimate for communication latency within a proper pool,
 we take the distance to the operator that is furthest away.
 Throwing in some symbols, the communication _cost_ in pools is proportional 
-to $(\gamma^h)^2 = (\gamma^{2h}) = (\gamma^2)^h$
+to $(d^h)^2 = (d^{2h}) = (d^2)^h$
 and thus,
 submitting orders to a pool of double the size
-incurs $\gamma^2$ the communication cost,
+incurs $d^2$ the communication cost,
 which is detrimental to welfare;
 in contrast, 
-_latency_ in a pool of height $h$ is proportional to $\gamma^h$,
+_latency_ in a pool of height $h$ is proportional to $d^h$,
 as this is the order of magnitude of the latency (in the nice average case),
 but due to discounted utility, we have a factor that is exponential in the latency,
-namely $\beta^{(\gamma^h)}$.
+namely $\beta^{(d^h)}$.
 The latter is actually the _»raison d'être«_ of why we are doing this.
 
-Looking once more at latency:<!--
-one way or another, e.g., having three/four children per level
---> we aim to have at least one batch auction in a pool of height $h$
+Looking once more at latency:
+we aim to have at least one batch auction in a pool of height $h$
 before unfilled/unmatched orders are forwarded to the parent-pool at height $h+1$—early
 enough for the intent to be considered in the next auction in the parent-pool.[^5]
-Thus, although $\gamma = 2$ is nice for illustrations, 
-we may actually rather need $\gamma =3$ in the end,
+Thus, although $d = 2$ is nice for illustrations, 
+we may actually rather need $d =3$ in the end,
 but little does it matter for the big picture.
-
-<!-- TODO: explain how the number come about -->
 
 ### The crux: filling rate
 
 We shall reason in terms of what we call the _filling rate_ 
-of the auctions in the single pools of the hierarchy,
-i.e., the expected percentage of order flow that is filled:
-$$X = \frac{\sum_{O \subseteq B_n} |O| \times \hat p(O)}{|B_n|}$$
-<!-- for an auction that takes time $t$, 
-we have the discounted expected utility
-$$\beta^t \sum_{O \subseteq B_n} u(O) \times p(O)$$
---><!-- continue here b
-- u(O) is the utility of the order set being completely matched
-- p(O) the probability that this one actually happens, a product of
-  - probability this is a possible match times
-  - probability the match is found by the respective pool / the algorithm
--->
-where $B_n$ is the $n$-th intent batch,
-$O \subseteq B_n$ is a sub-batch of orders,
-and $\hat p(O)$ is the probability that $O$ is the (maximally useful) set of filled orders.[^9]
+of the auctions in each pool, 
+i.e., what percentage of orders is filled. 
+One can simply keep track of this rate and if the rate is 
+too far away from the goal,
+one can either split a pool that has too many orders
+or join neighboring pools that have not enough flow.
 
-For a concrete simple example, <!-- starting with one -->
+
+For a concrete simple example,
 we take the case of pairwise swaps,
-say of digitally transformed pokémon cards;
-each swap comes with a bid for having it filled.
-The matching algorithm is almost trivial
-**(and the reader can figure it out themselves $\mathtt{;-)}$).**
+say of digitally transformed pokémon cards.
+We make it really simple and only consider trades of the very same card
+for another super common card (building up or using pokémon credit, 
+but that is then just a side condition that one must also give or take pokémon credit).
+The matching algorithm is almost trivial: 
+1. calculate the surplus and demand for each type of card
+2. le
 Note that this will match each matching pair
 **(and will favour smaller over bigger cycles if they are found [`😅` ooof! We need an example with a much simpler matching strategy!!!])** 
 
@@ -302,6 +272,11 @@ or similar hierarchical organization of intent pools.
 [^9]: Here, we are considering a greedy strategy. 
 	If there is no greedy strategy, we are beyond the scope of the blog post.
 
+[^a]: There is also a tangent for scale-free aspects, but that's a little bit more far fetched.
+
+[^b]: That is for the case of binary branching. If we have ternary branching, then we'd aim for $66\%$, and for general branching degree $d$, we would aim for a fraction $1-1/d$. 
+
+[^c]: Instead of a single operator one may want to take already some BFT system, say $3f+1$ operators.
 <!-- footnotes end -->
 
 <!-- notes and the like
