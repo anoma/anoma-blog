@@ -7,7 +7,7 @@ const locations = 2^maxDepth
 println("The number of locations 'locations' is $locations.")
 
 # the number of different kinds of resources
-const maxVariability = 32
+const maxVariability = 2
 println("The maximum variability of intents 'maxVariability' is $maxVariability.")
 
 # An intent is issued at
@@ -283,6 +283,19 @@ function solvePool(pool::Pool)
     return solution
 end
 
+function printPercentages(solution)
+    local ds::Vector{Int} = collect(Set([ (v[2]) for (_,v) in solution]))
+    ds = sort(ds)
+    local counts = Dict(p => length([ 1 for (k,v) in solution if v[2]==p]) for p in ds)
+    for d in ds
+        for _ in 1:div(counts[d]*80,length(solution))
+            print("", convert(Int, d))
+        end
+    end
+    println("")
+end
+    
+    
 function propagateContents(pool::Pool)
     # if it is time to do so, propagate the remaining contents (unless pool is the root)
     @assert pool.depth > 0
@@ -457,7 +470,10 @@ begin
             delete!(s,1:tenth)
             local stuckTimes = [s[k][1]-k.time for k in keys(s)]
             local valueLost = sum([MathConstants.e^(-t) for t in stuckTimes])
-            println("value lost due to waiting: $valueLost.")
+            println("Value lost due to waiting: $valueLost.")
+            println("Rough picture of percentages per depth:")
+            printPercentages(s)
+            println("")
         end
     end
     
@@ -466,13 +482,13 @@ begin
         [round(digits=5, someSolutions[k][i][1]-i.time) for i in theIntents if 
         haskey(someSolutions[k],i)] for k in 1:length(someSolutions)
         ]
-        display(Plots.bar([reverse(sort(solvingTime[j])) 
+        #= display(Plots.bar([reverse(sort(solvingTime[j])) 
         for j in 1:length(someSolutions)], 
         ylabel = "Width", size = (800,400*4);
-        layout = (length(someSolutions), 1)))
+        layout = (length(someSolutions), 1))) =#
     end
 end
 
-println("press key to exit")
+# println("press key to exit")
 
-_ = readline()
+# _ = readline()
