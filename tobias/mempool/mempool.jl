@@ -7,7 +7,7 @@ const locations = 2^maxDepth
 println("The number of locations 'locations' is $locations.")
 
 # the number of different kinds of resources
-const maxVariability = 2
+const maxVariability = 32
 println("The maximum variability of intents 'maxVariability' is $maxVariability.")
 
 # An intent is issued at
@@ -165,13 +165,13 @@ function putOrders(leaves, intents, routing::Dict{UInt8,UInt8})
         @assert l.interval == leaves[1].interval "The `interval`s are messed up!"        
     end
     
-    # the deadline for solving
-    local deadline = leaves[1].nextTime
     # the first time at which new intents are to be considered
-    local first = deadline-(leaves[1].interval)
-    @assert deadline > first "FYI (that cannot be)"
+    local first = leaves[1].now
+    # the next tick (possibly solving, but not necessarily)
+    local nxt = leaves[1].now+leaves[1].interval/2
+    @assert nxt > first "FYI (that cannot be)"
     # filter the relevant intents
-    local relevant = [i for i in intents if i.time >= first && i.time < deadline]
+    local relevant = [i for i in intents if i.time >= first && i.time < nxt]
     @assert length(relevant) == length(intents) "stupid bug ???"
     if length(relevant) > 0
         # println("Number of relevant intents for next tick is $(length(relevant)).")
@@ -205,7 +205,7 @@ function solvePool(pool::Pool)
     # calculate the resource balances (this could be a field of the pool to save compute)
     for intent in pool.contents
         let r = intent.resource
-            # print("inc ", r)
+            # update, i.e., increment the balance according to the resource of the intent
             balance[r] = balance[r]+1
         end
     end
@@ -213,7 +213,7 @@ function solvePool(pool::Pool)
     for index in reverse(1:length(pool.contents))
         # now index is the index of an intent
         let r = (pool.contents[index]).resource
-            # now r is the rsource at index
+            # now r is the rsource at indexed intent
             # check if there is some (unspecified) intent that is matching
             if balance[-r] > 0
                 # the intent i is matched!
@@ -264,16 +264,22 @@ function solvePool(pool::Pool)
     #println("deleting so many indices in numbers ", length(indices))
     #end
     # starting with the biggest indices, loop over indices
+    # print(" old lengths ", length(pool.contents), " ", length(solution), "  ... ", pool.now , " ")
     for i in reverse(1:length(indices))
         local index = indices[i]
         # put the intent to the solution
         let intent = pool.contents[index]
-            @assert intent.time <= pool.nextTime "we cannot have negative solving time !!! "
+            @assert intent.time < pool.now "we cannot have negative solving time !!! " 
+            if intent.time == pool.now
+                print(" edge case !")
+            end
             # remove it from the pool contents
             delete!(pool.contents, index)
+            @assert !(intent in keys(solution)) "already present in solution $intent !"
             solution[intent] = (pool.now, pool.depth, pool)
         end
     end
+    # println(" new lengths ", length(pool.contents), " ", length(solution))
     
     @assert checksum == sum([intent.resource for intent in pool.contents]) "error???"
     @assert oldLength == length(pool.contents) + length(indices)
@@ -296,8 +302,8 @@ function printPercentages(solution)
     end
     println("")
 end
-    
-    
+
+
 function propagateContents(pool::Pool)
     # if it is time to do so, propagate the remaining contents (unless pool is the root)
     @assert pool.depth > 0
@@ -326,11 +332,26 @@ end
 # - intents is the set of intents from which we take new orders
 # - pools is the list of all pools 
 function solving(leafPools, maxTime, intents, pools)
-    local tick = (last(leafPools).interval)
+    local tick = (last(leafPools).interval)/2
     # the solution to be returned as global solution
+    local dpth = (last(leafPools)).depth
+    # initilize delays (for most efficient propagation)
+    for p in pools
+        let d = p.depth
+            if d == dpth
+                @assert p.now == 0
+            else
+                @assert dpth > d
+                p.nextTime = p.nextTime + (tick*2^(dpth-(d+1)))
+                # so if d == 0, i.e. for the root pool, we delay by 2^{depth-1}*tick
+            end
+        end
+    end
     local theSolution = Dict()
     # we start at time 0
     local globalTime = 0
+    # put intents only every other tick
+    local intentsNow = true
     # a useful assumption (no point in having more than one pool per location)
     @assert locations >= length(leafPools) "too many pools or not enough locations"
     
@@ -348,6 +369,7 @@ function solving(leafPools, maxTime, intents, pools)
     for l in leafPools
         @assert l in pools "spurious leaf or pools missing leaves"
     end
+    
     # pools properly constructed
     for index in reverse(1:length(pools))
         let p = pools[index]
@@ -367,23 +389,26 @@ function solving(leafPools, maxTime, intents, pools)
     # println("the time is $theTime and maxTime is $maxTime")
     while (globalTime <= maxTime || leftovers)
         
+        # in the current "tick", we first put new orders to the leaves
+        local relevant = [i for i in intents if i.time >= leafPools[1].now && i.time < leafPools[1].now+tick]
+        putOrders(leafPools, relevant, rout)
+        runningIntents += length(relevant)
+        @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools]) "oh NOOOO what?"
+        
+        
         #println("time now is $theTime")
         # update time (lest we forget) -- it is just for the loop
         local oldTime = globalTime
         globalTime = globalTime + tick
         # update time
         for p in pools  
-            p.now = globalTime
+            p.now = p.now + tick
         end
-        
-        # in the current "tick", we first put new orders to the leaves
-        local relevant = [i for i in intents if i.time >= oldTime && i.time < globalTime]
-        putOrders(leafPools, relevant, rout)
-        runningIntents += length(relevant)
-        
+
+       
         @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools]) "oh noooo what?"
         
-        # starting from deepest/rightmost pools (i.e., leaves) going "left/up"
+        # starting from the root pool
         for i in 1:length(pools)
             local p = pools[i]
             let solution = solvePool(p)
@@ -394,14 +419,17 @@ function solving(leafPools, maxTime, intents, pools)
                 merge!(theSolution, solution)
             end
         end
-        @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools]) "oh noooo, this is bad!"
-        
-        
-        # after all solving is done for this time "now", we propagate 
+
+        # after solving, we need to check whether we should propagate (local first!)
         for i in 2:length(pools)
             propagateContents(pools[i])
         end
 
+        
+        @assert runningIntents == length(theSolution) + sum([length(p.contents) for p in pools])
+        "oh noooo, this is bad! $(length(theSolution) - sum([length(p.contents) for p in pools]))"
+        
+        
         # update secondary condition for loop termination
         leftovers = 0 < sum([length(p.contents) for p in pools if p!=pools[1]])
         
@@ -463,15 +491,15 @@ begin
         @assert length(someSolutions[i]) == length(someSolutions[1]) "oh nooooo!"
         # println("Solution $i) has length: ", length(someSolutions[i]), " with left overs ", someLeftovers[i], ".")
     end
-
+    
     let tenth = div(length(someSolutions[1]),10)
         for s in someSolutions
             delete!(s,length(s)-tenth:length(s))
             
             delete!(s,1:tenth)
             local stuckTimes = [s[k][1]-k.time for k in keys(s)]
-            local valueLost = sum([MathConstants.e^(t) for t in stuckTimes])
-            println("Value lost due to waiting: $valueLost.")
+            local valueCreated = sum([MathConstants.e^(-t) for t in stuckTimes])
+            println("Value created in total: $valueCreated for discount factor ", 1/MathConstants.e)
             println("Rough picture of percentages per depth:")
             printPercentages(s)
             println("")
@@ -483,13 +511,13 @@ begin
         [round(digits=5, someSolutions[k][i][1]-i.time) for i in theIntents if 
         haskey(someSolutions[k],i)] for k in 1:length(someSolutions)
         ]
-        #= display(Plots.bar([reverse(sort(solvingTime[j])) 
+        display(Plots.bar([reverse(sort(solvingTime[j])) 
         for j in 1:length(someSolutions)], 
-        ylabel = "Width", size = (800,400*4);
-        layout = (length(someSolutions), 1))) =#
+            ylabel = "Width", size = (800,400*4);
+            layout = (length(someSolutions), 1)))
+        end
     end
-end
-
-# println("press key to exit")
-
-# _ = readline()
+    
+    println("press key to exit")
+    
+    _ = readline()
